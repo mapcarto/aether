@@ -10,6 +10,52 @@ sidebar_position: 1
 
 ---
 
+## 0. 事件驱动的 AI 代理结构图 (Agent Architecture)
+
+要让大语言模型真正“看懂”并且“干预”一座全尺度的三维数字孪生城市，绝对不仅是投喂 JSON 那么简单，需要在引擎外部专门针对其“全逻辑重度、算力弱缺”的特性铺设独立适配中枢。
+
+```mermaid
+flowchart TD
+    classDef engine fill:#2d3748,stroke:#4fd1c5,stroke-width:2px,color:#fff
+    classDef ai_proxy fill:#2b6cb0,stroke:#2c5282,stroke-width:2px,color:#fff
+    classDef llm fill:#dd6b20,stroke:#c05621,stroke-width:2px,color:#fff
+
+    AE_CORE["Aether 引擎金字塔与计算核心"]:::engine
+    PYRAMAN["看门人单线程中枢 (Pyraman Orchestrator)<br/>瞬时抽出只读网格快照"]:::engine
+    RINGBUF["MPMC 无锁环形缓冲区 (ringbuf)<br/>百万吞吐喷发世界时序变动"]:::engine
+    
+    AE_CORE -->|"无锁 MVCC 拷贝"| PYRAMAN
+    AE_CORE -->|"产生事件流水"| RINGBUF
+
+    subgraph "事件与大模型中转枢纽 (AI Agent Proxy)"
+        direction TB
+        SERIALIZER["【A】语义序列化映射器<br/>(只抓精简坐标/LOD概览 -> JSON)"]:::ai_proxy
+        EVENT_BUS["【B】双向异构事件驱动母带<br/>(挂靠消费 ringbuf 内的消息)"]:::ai_proxy
+        TOOL_API["【C】外挂工具钩子组件栈<br/>(包裹成 OpenAI Function Calling API)"]:::ai_proxy
+        MEMORY["【D】对话历史堆栈与上下文引擎<br/>(保留大模型判断的历史推演连环)"]:::ai_proxy
+    end
+
+    PYRAMAN -->|"获取环境定格基座"| SERIALIZER
+    RINGBUF <-->|"1. 订阅环境变化消息<br/>2. 投递大模型的逆向干涉"| EVENT_BUS
+    
+    SERIALIZER --> EVENT_BUS
+    EVENT_BUS --> TOOL_API
+    EVENT_BUS <--> MEMORY
+
+    LLM_BRAIN["大语言模型主体🧠<br/>(e.g., GPT-4 / 军规大核心)"]:::llm
+
+    TOOL_API <-->|"Prompt Context / 函数调用触发"| LLM_BRAIN
+```
+
+### 【代理架构的四大核心研发模块】
+针对上述架构拓扑，研发人员必须彻底抽离引擎业务实现以下功能挂接：
+1. **语义序列化模块 (Semantic Serializer)**：将 `Pyraman` 切出来的冷幽幽的 C 语言结构快照指针链，转换成只有宏观字典层级的纯粹语义 JSON（例如 `{"entity_102": {"type": "vehicle", "level": 3...}}`），坚决不要投喂详细的多边形阵列顶点群。
+2. **双向引擎事件总线转接器 (Bi-directional Event Adapter)**：在无锁环境的尽头成为一名 `ringbuf` 的“旁观消费者”。当如 `polygon_intersection` 这种物理布尔测试引擎运算出交点后抛出 `CALCULATION_DONE` 标签，便要负责拦截后快速逆转化给大模型提示词 (Prompt)。
+3. **暴露给 LLM 的操作盘 (Function Calling API)**：将刚才提到的诸如体素盲查 `pyramid_query` 和调用高精度几何手术刀 `clipper2` 这两件脏活封装。AI 发出需求调起函数代码段，绝对不让大模型在自身的浮点权重池内“猜数字距离”。
+4. **引擎外部上下文缓存 (State Machine Memory)**：既然物理模拟和计算被 AE 剥离承揽，那么维护“时间上的战术或因果策略序列”这种脏活必须由 AI Agent 主导（记录“我在两周前让你去包抄了北侧网格，所以你现在面临了堵塞风险”这类复杂长序列判断体系）。
+
+---
+
 ## 阶段一：感知初始化与顶层宏观截断 (LOD Level 0-2)
 
 在系统启动或大模型刚接入世界状态机时，不应向模型投喂千万级叶子节点数据，而是利用“金字塔”顶层提供高阶聚类信息字典构成的基线副本。
@@ -56,7 +102,7 @@ sidebar_position: 1
 ```
 
 ### **Aether 返回基线 (Engine Target Output)**
-引擎利用看门人 (Pyraman) 瞬时切分出无锁副本，精准投递指定圆周内的实体状态属性包。
+引擎利用看门人单线程中枢 (Pyraman Orchestrator) 瞬时切分出无锁副本，精准投递指定圆周内的实体状态属性包。
 ```json
 {
   "sector": "L2_X4_Y7",
