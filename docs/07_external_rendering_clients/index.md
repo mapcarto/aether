@@ -8,11 +8,13 @@ sidebar_position: 7
 
 在 Aether (AE) 的原生架构理念中，**渲染与可视化管线被极其严格地定义为引擎边界之外的“被动观测者 (Passive Observers)”**。这种隔离剥开了传统游戏引擎底座中物理计算与画面刷新之间的严重资源抢占现象。
 
-## 1. 核心解耦原则 (Decoupling Principles)
+## 1. 核心解耦原则与 Headless 架构 (Decoupling Principles & Headless Computing)
 
-- **只读快照馈算 (Snapshot Ingestion)**：渲染端（无论底层封装的是 Vulkan、OpenGL 或是 Cairo）永远不可直接穿透至金字塔内存进行读写交替操作。其获取时空环境画面的唯一途径是从 `Pyraman`（看门人引擎）拉取无锁多版本（MVCC）只读并发副本。
-- **零副作用设计 (Zero-Side-Effect)**：图形渲染进程若遭遇帧数下降、画面停顿甚至显示驱动崩溃休眠，绝对不应当阻塞引擎内部每秒百万级的核心事件流引擎推进。
-- **纯粹数据投影 (Data Projection)**：可视化客户端的职责单一收敛，仅负责将拿到的矩阵数组 (`Transform Matrices`)、坐标集等组件从引擎的主存空间内直接映射或热拷贝至显存 (VRAM) 供下游指令批次提交。
+Aether 服务器本质上是一个绝对的 **无头状态计算器 (Headless State Calculator)**。我们坚守“只负责高吞吐内存计算、彻底剥离三维渲染”的不可逾越之红线：
+
+- **只读快照馈算 (Snapshot Ingestion)**：渲染端（无论是极速的 Node.js 库如 `git-city`，还是厚重的桌面级 Vulkan）永远不可穿透至金字塔内存进行干扰式读写。其获取时空环境的唯一途径，是从 `Pyraman`（看门人中枢）提取无锁的双金字塔（Active面）多版本并发副本。
+- **结构化输出协议 (Structured Data Protocol)**：作为计算底盘，引擎向外部抛出的是高度致密、原生序列化的结构体（如纯正的体素矩阵、实体坐标集位移增量）。以低空管控平台为例，Aether 吐出结构化体素流，直接喂给类似 `git-city` 的外部专用体素前端进行快速上屏渲染，彻底砍掉了引擎内置光栅化的冗余包袱。
+- **零副作用设计 (Zero-Side-Effect)**：图形渲染进程若遭遇帧数大跌、Web 容器卡顿或显示驱动崩溃休眠，绝对不应当阻塞 Aether 内部每秒百万级的核心事件流引擎推演。
 
 ## 2. 具体场景的渲染外挂管线
 

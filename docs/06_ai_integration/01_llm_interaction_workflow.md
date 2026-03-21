@@ -31,7 +31,7 @@ flowchart TD
         direction TB
         SERIALIZER["【A】语义序列化映射器<br/>(只抓精简坐标/LOD概览 -> JSON)"]:::ai_proxy
         EVENT_BUS["【B】双向异构事件驱动母带<br/>(挂靠消费 ringbuf 内的消息)"]:::ai_proxy
-        TOOL_API["【C】外挂工具钩子组件栈<br/>(包裹成 OpenAI Function Calling API)"]:::ai_proxy
+        TOOL_API["【C】MCP 协议网络桥接与固化技能(Skill)底座<br/>(暴露预设接口，杜绝原生 C 函数调用)"]:::ai_proxy
         MEMORY["【D】对话历史堆栈与上下文引擎<br/>(保留大模型判断的历史推演连环)"]:::ai_proxy
     end
 
@@ -44,14 +44,14 @@ flowchart TD
 
     LLM_BRAIN["大语言模型主体🧠<br/>(e.g., GPT-4 / 军规大核心)"]:::llm
 
-    TOOL_API <-->|"Prompt Context / 函数调用触发"| LLM_BRAIN
+    TOOL_API <-->|"基于 MCP 规范提取调用参数"| LLM_BRAIN
 ```
 
 ### 【代理架构的四大核心研发模块】
 针对上述架构拓扑，研发人员必须彻底抽离引擎业务实现以下功能挂接：
 1. **语义序列化模块 (Semantic Serializer)**：将 `Pyraman` 切出来的冷幽幽的 C 语言结构快照指针链，转换成只有宏观字典层级的纯粹语义 JSON（例如 `{"entity_102": {"type": "vehicle", "level": 3...}}`），坚决不要投喂详细的多边形阵列顶点群。
 2. **双向引擎事件总线转接器 (Bi-directional Event Adapter)**：在无锁环境的尽头成为一名 `ringbuf` 的“旁观消费者”。当如 `polygon_intersection` 这种物理布尔测试引擎运算出交点后抛出 `CALCULATION_DONE` 标签，便要负责拦截后快速逆转化给大模型提示词 (Prompt)。
-3. **暴露给 LLM 的操作盘 (Function Calling API)**：将刚才提到的诸如体素盲查 `pyramid_query` 和调用高精度几何手术刀 `clipper2` 这两件脏活封装。AI 发出需求调起函数代码段，绝对不让大模型在自身的浮点权重池内“猜数字距离”。
+3. **基于 MCP 协议的调用规范与技能架构 (MCP Protocol & Skills)**：大模型不可以直接生成执行代码对底层引擎进行探针式刺探，也严禁使用任何类似 `dyncall` 的黑客级库赋予 LLM 在无边际沙盒里直接挂载底层 C 函数的极危特权。所有的通信强制收拢为标准化的 **MCP (Model Context Protocol)**。同时在 Server 容器内建立固件化的辅助“技能库 (Skills)”。当需求比如是“计算指定区域面积”时，AI 仅依靠 MCP 按标准词条触发特定存放于本地的 Python Script，避免对环境直接制造指令溢出幻觉。
 4. **引擎外部上下文缓存 (State Machine Memory)**：既然物理模拟和计算被 AE 剥离承揽，那么维护“时间上的战术或因果策略序列”这种脏活必须由 AI Agent 主导（记录“我在两周前让你去包抄了北侧网格，所以你现在面临了堵塞风险”这类复杂长序列判断体系）。
 
 ---
