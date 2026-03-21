@@ -1,7 +1,7 @@
 ---
 title: API参考手册与结构体字典
 description: 带有完整内存所有权与并发警告的 Doxygen 标签标准规范
-sidebar_position: 5
+sidebar_position: 4
 ---
 
 # API参考手册与结构体字典 (API Reference Dictionary)

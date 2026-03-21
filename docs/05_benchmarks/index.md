@@ -1,7 +1,7 @@
 ---
 title: 性能极限基准与落地指南 
 description: 从 8 亿次吞吐数据分析到工业级框架集成 (libtess2)
-sidebar_position: 6
+sidebar_position: 5
 ---
 
 # 性能基准指标与架构落地验证 (Benchmarks & Enterprise Guides)

@@ -27,5 +27,5 @@ description: 高性能纯C金字塔空间网格与事件驱动引擎
    - [02_无原型 ECS](./docs/03_core_subsystems/02_archetypeless_ecs.md) (`ecs.c/h`)
    - [03_事件总线](./docs/03_core_subsystems/03_event_timing.md) (`taskwheel.c`, `hitimer.c`)
    - [04_无锁并发与内存竞技场](./docs/03_core_subsystems/04_concurrency_and_memory.md) (`ringbuf.c/h`, `memarena.c/h`...)
-4. **[04_API参考与接口字典](./docs/05_api_reference/index.md)** - 自动化结构体与回调函数签名指南。
-5. **[05_基准测试与架构落地](./docs/06_benchmarks/index.md)** - 实战打压数据支撑与第三方库零拷贝集成指南。
+4. **[04_API参考与接口字典](./docs/04_api_reference/index.md)** - 自动化结构体与回调函数签名指南。
+5. **[05_基准测试与架构落地](./docs/05_benchmarks/index.md)** - 实战打压数据支撑与第三方库零拷贝集成指南。
