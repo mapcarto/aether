@@ -22,7 +22,10 @@ description: 高性能纯C金字塔空间网格与事件驱动引擎
 
 1. **[01_概念总览与架构哲学](./docs/01_philosophy/index.md)** - 阐释“万物皆事件”的统一时空观与零黑盒的执行环境。
 2. **[02_快速上手与实战指南](./docs/02_quickstart/index.md)** - 最小可行性全工作流：从内存池初始化到事件调度闭环。
-3. **[03_核心子系统深度解析](./docs/03_core_subsystems/)** - 理论主干，包含金字塔空间网格、事件时间轮、无原型 ECS 及并发模型。
-4. **[04_内存所有权规范](./docs/04_memory_management/index.md)** - `memarena` 尾栈记录器原理与极其严苛的纯 C 生命期转移契约。
-5. **[05_API参考与接口字典](./docs/05_api_reference/index.md)** - 自动化结构体与回调函数签名指南。
-6. **[06_基准测试与架构落地](./docs/06_benchmarks/index.md)** - 实战打压数据支撑与企业级第三方库 (libtess2/libclipper) 零拷贝集成指南。
+3. **[03_核心底层引擎 (Core Subsystems)](./docs/03_core_subsystems/)** - 理论主干与 4 大物理基石：
+   - [01_空间网格](./docs/03_core_subsystems/01_spatial_grid.md) (`pyramid2.c/h`, `pyramid3.c/h`...)
+   - [02_无原型 ECS](./docs/03_core_subsystems/02_archetypeless_ecs.md) (`ecs.c/h`)
+   - [03_事件总线](./docs/03_core_subsystems/03_event_timing.md) (`taskwheel.c`, `hitimer.c`)
+   - [04_无锁并发与内存竞技场](./docs/03_core_subsystems/04_concurrency_and_memory.md) (`ringbuf.c/h`, `memarena.c/h`...)
+4. **[04_API参考与接口字典](./docs/05_api_reference/index.md)** - 自动化结构体与回调函数签名指南。
+5. **[05_基准测试与架构落地](./docs/06_benchmarks/index.md)** - 实战打压数据支撑与第三方库零拷贝集成指南。

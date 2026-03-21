@@ -5,6 +5,8 @@ description: $O(1)$复杂度、八级联动的纳秒定时调度核心机制
 
 # 事件驱动架构：事件总线与高精度时间轮 (Event Bus & Timing Wheel)
 
+> 🔗 **对应底层代码库：** `common/taskwheel.c/h`, `common/hitimer.c/h`, `common/timeapi.c/h`
+
 > 纯C环境缺乏原生协程/闭包能力，因此异步的回调必须由统一的数据总线严格调配时间片并维持生命周期转移不产生泄露。
 
 ## 1. 核心循环节拍拆解

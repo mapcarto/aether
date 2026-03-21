@@ -5,6 +5,8 @@ description: 按类型分池存储架构及其背后的常数性能收益解析
 
 # 无原型实体组件系统 (Archetype-less ECS)
 
+> 🔗 **对应底层代码库：** `common/ecs.c/h`, `common/refcobj.h`
+
 与开源界（如 `flecs`, `EnTT`）盛行的根据**原型 (Archetype) 匹配**进行实体连续迁移的做法截然不同。Aether 本着拒绝任何不可控操作的思想，设计了最为扁平化的结构底座。
 
 ## 1. 原型迁移成本风暴

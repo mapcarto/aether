@@ -5,6 +5,8 @@ description: 剖析金字塔层级、LOD 适配与彻底杜绝假阳性的几何
 
 # 多维空间网格与体素化计算 (Spatial Grid & Voxelization)
 
+> 🔗 **对应底层代码库：** `common/pyramid.h`, `common/pyramid2.c/h`, `common/pyramid3.c/h`, `common/pyramid4.c/h`
+
 > 旨在将复杂的空间拓扑学原理、离散数学结合极致的零拷贝 C 源指针。
 
 ## 1. 原理与局限：为什么抛弃传统空间索引？
