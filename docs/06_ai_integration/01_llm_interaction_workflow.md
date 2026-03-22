@@ -115,9 +115,9 @@ flowchart TD
 
 ---
 
-## 阶段三：规避浮点灾难，委托硬件级别拓扑计算 (Geometry Math Delegation)
+## 阶段三：规避浮点灾难，委托硬件级别拓扑计算 (调用第 8 卷：空间分析管线)
 
-大模型不能直接处理浮点网格距离或计算多边形穿透，这必须交由底层的 `libclipper` 或体素计算管道进行原生处理。
+大模型绝对不能直接处理海量的浮点网格距离或计算多边形穿透。当 AI 在阶段二发现了两架逼近的无人机时，它将通过调用本地预设的 Skill (MCP Tool)，把**深度的空间几何裁切与布尔运算**直接抛给 **第 8 卷 (Spatial Analysis Pipelines)** 中的 `libclipper` 等底层连续几何管线进行原生处理。
 
 ### **LLM 意图 (Prompt / Action)**
 大模型不对空间关系作自我演算（如推演实体距离、碰撞可能），直接发出逻辑意图验证。
@@ -157,3 +157,32 @@ flowchart TD
 ]
 ```
 凭借极低开销的增差化信息投流，大语言模型在长期交互的 Context 环境中只需基于自身固有的记忆系统对状态集予以覆写，彻底阻断因大规模空间数据反复重投引发的时延顿挫。
+
+---
+
+## 阶段五：具象化核实与可视化渲染出图 (调用第 7 卷：外部渲染管线)
+
+在实际业务（如向空管局参谋汇报航线规划）中，干巴巴的 JSON 往往缺乏直接说服力。此时大语言模型可以联动 **第 7 卷 (External Rendering Clients)** 提供的 2D/3D 渲染工具链，生成直观的可视化图片。
+
+### **LLM 意图 (Prompt / Action)**
+大模型在作出“航线需要调拨”的决策后，请求外围渲染插件截取当前交汇点的画面快照以向人类用户佐证：
+```json
+{
+  "action": "trigger_visual_render",
+  "target_sector": "L2_X4_Y7",
+  "renderer": "cairo_2d",
+  "highlight_entities": [10245, 10246],
+  "output_format": "png_base64"
+}
+```
+
+### **Aether 返回基线 (Engine Target Output)**
+底层的看门人中枢将内存快照喂给 `Cairo` 或 `Vulkan` 节点，渲染器瞬间烘焙出一张只读的局部二维平面图或三维轴测图，并返回给大模型前端。
+```json
+{
+  "status": "render_complete",
+  "image_url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA...",
+  "description": "已为您生成实体 10245 与 10246 当前的三维交汇预测截图。"
+}
+```
+*通过挂载这种渲染工具，大模型不仅是一个“算力协调者”，更变成了一个能够随时“出图”、“上可视化大屏”的高级测绘汇报员。*
