@@ -35,3 +35,4 @@ description: 高性能纯C金字塔空间网格与事件驱动引擎
    - [LLM 上下文交互工作流](./docs/06_ai_integration/01_llm_interaction_workflow.md)
 7. **[07_外部渲染与可视化客户端 (External Rendering Clients)](./docs/07_external_rendering_clients/index.md)** - 剖析 Vulkan/高斯泼溅等渲染前端读取无锁快照的独立挂靠范式。
 8. **[08_空间计算分析管线 (Spatial Analysis)](./docs/08_spatial_analysis_pipelines/index.md)** - 拆分 离散体素侧、连续解析几何侧（含跨域长条实体的引用拓扑映射）、与 4D 图谱逻辑推演侧 的严格架构界线。
+9. **[09_外部网络服务与工程体系 (Service & Toolchains)](./docs/09_service_and_toolchains/index.md)** - 解析无头服务端 (Headless Server) 组件、UDP/gRPC 强力通信隔离与工程编译链部署策略。
