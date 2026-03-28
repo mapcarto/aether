@@ -1,5 +1,5 @@
 ---
-title: 架构哲学：世界模型索引器与数字时空引擎
+title: 架构哲学：世界模型索引器与时空格网服务引擎
 description: 解析 Aether 五大物理运转模块协同与“世界模型”顶层架构哲学
 sidebar_position: 1
 ---
@@ -7,9 +7,9 @@ sidebar_position: 1
 # 概念总览与架构哲学 (Conceptual Overview)
 
 > 核心价值观：“极简、透明、可控”
-> 本节不涉及具体的 C 语言指针与并发代码，着重阐释基于此打造的 Aether (AE) 作为 **“底层世界模型索引器 (World Model Indexer)”** 的工程蓝图。
+> 本节不涉及具体的 C 语言指针与并发代码，着重阐释基于此打造的 Aether (æ) 作为 **“底层世界模型索引器 (World Model Indexer)”** 的工程蓝图。
 
-## 1. 顶层定位：高性能零依赖的时空内存引擎 (Spatiotemporal In-Memory Engine)
+## 1. 顶层定位：高性能零依赖的时空格网服务引擎 (Spatiotemporal In-Memory Engine)
 
 在业界对“引擎”一词的探讨中，许多开发者容易将 AE 与传统商用闭源引擎作平级对标，或者将其等同于传统磁盘型空间数据库（如 PostGIS），这实则是一种严重的层级错位。 传统游戏引擎往往是封装了材质、动画与垃圾回收的“生产平台管线”，而传统空间数据库在面对极高频并发计算时往往受限于磁盘 I/O。AE 的生态位是一个极其克制、不包含任何渲染绘制代码且**完全基于内存的高并发纯物理时空计算引擎**。
 
@@ -31,7 +31,7 @@ flowchart TD
     classDef event fill:#d69e2e,stroke:#b7791f,stroke-width:2px,color:#fff
     classDef pipeline fill:#805ad5,stroke:#553c9a,stroke-width:2px,color:#fff,stroke-dasharray: 5 5
 
-    AE["Aether (AE) 数字时空引擎<br/>(设计哲学：万物皆事件、时空一体)"]:::engine
+    AE["Aether (æ) 时空格网服务引擎<br/>(设计哲学：万物皆事件、时空一体)"]:::engine
 
     subgraph "第一层：数据拓扑与物理空间 (Core)"
         direction LR

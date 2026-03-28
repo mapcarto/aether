@@ -6,7 +6,7 @@ sidebar_position: 1
 
 # 业务插件 API 与 ABI 集成规范 (Business Plugin Integration)
 
-Aether (AE) 的极简架构要求核心引擎（底盘）必须保持绝对纯净，内部不应包含任何诸如“航路审批”、“特定飞行器载荷限制”等属于上层行业逻辑的代码。对于低空管控平台、天地行等商用形态，系统强力推行 **“核心引擎 + 业务插件 (Core Engine + Business Plugins)”** 的交付与扩展模式。
+Aether (æ) 的极简架构要求核心引擎（底盘）必须保持绝对纯净，内部不应包含任何诸如“航路审批”、“特定飞行器载荷限制”等属于上层行业逻辑的代码。对于低空管控平台、天地行等商用形态，系统强力推行 **“核心引擎 + 业务插件 (Core Engine + Business Plugins)”** 的交付与扩展模式。
 
 ## 1. 赋予业务开发者的核心价值 (Developer Value Proposition)
 我们在架构哲学中提到了“数据结构不可知论 (Data Structure Agnosticism)”，这并非一句空话。当用户（如军工企业、智驾算法团队）使用 Aether 框架开发业务时，它能带来极其震撼的工程价值：
