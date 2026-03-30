@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aether 时空格网引擎技术白皮书</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 基础变量与设计系统 */
+        :root {
+            --primary: #1f1711;
+            --secondary: #3a2c22;
+            --accent: #c66a1f;
+            --accent-glow: rgba(198, 106, 31, 0.22);
+            --success: #10b981;
+            --text-main: #2f251d;
+            --text-muted: #5f5145;
+            --bg-body: #ffffff;
+            --bg-card: #ffffff;
+            --border: #d8cbb8;
+            --code-bg: #2c241e;
+            --code-text: #f5ede2;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #1f1711;
+                --secondary: #3a2c22;
+                --accent: #b85f18;
+                --accent-glow: rgba(184, 95, 24, 0.16);
+                --text-main: #2f251d;
+                --text-muted: #5f5145;
+                --bg-body: #ffffff;
+                --bg-card: #ffffff;
+                --border: #d8cbb8;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            line-height: 1.7;
+            color: var(--text-main);
+            background-color: var(--bg-body);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 顶部导航与封面 */
+        header {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: #ffffff;
+            padding: 80px 40px 120px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.2rem, 7vw, 3.8rem);
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.1;
+            margin-bottom: 20px;
+            letter-spacing: -0.025em;
+        }
+
+        .hero-divider {
+            width: 40px;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+            margin: 0 auto 28px;
+        }
+
+        .hero-logo {
+            width: clamp(56px, 8vw, 88px);
+            height: auto;
+            margin-bottom: 56px;
+            object-fit: contain;
+            opacity: 0.88;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 560px;
+            margin-bottom: 32px;
+            letter-spacing: 0.015em;
+            line-height: 1.65;
+        }
+
+        .badge-version {
+            display: inline-block;
+            padding: 5px 14px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 99px;
+            font-weight: 500;
+            font-size: 0.82rem;
+            margin-bottom: 24px;
+            letter-spacing: 0.04em;
+        }
+
+        .hero-pillars {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .hero-pillar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.88rem;
+            color: var(--text-main);
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+        }
+
+        .hero-pillar::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .hero-pillar + .hero-pillar {
+            position: relative;
+        }
+
+        .abstract-box {
+            background: #fdf8f3;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 12px;
+            padding: 22px 28px;
+            max-width: 620px;
+            text-align: left;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* 目录 */
+        .toc {
+            margin: 80px 0;
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid var(--border);
+        }
+
+        .toc h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            color: var(--primary);
+        }
+
+        .toc ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 12px;
+        }
+
+        .toc a {
+            color: var(--text-main);
+            text-decoration: none;
+            display: block;
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .toc a:hover {
+            color: var(--accent);
+            background: var(--bg-body);
+            border-color: var(--border);
+            transform: translateX(5px);
+        }
+
+        /* 正文内容样式 */
+        article section {
+            margin-bottom: 100px;
+            scroll-margin-top: 40px;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 32px;
+            color: var(--primary);
+            position: relative;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            margin: 48px 0 24px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before {
+            content: '';
+            width: 8px;
+            height: 24px;
+            background: var(--accent);
+            margin-right: 12px;
+            border-radius: 4px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 24px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin: 0 0 24px 24px;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        strong {
+            color: var(--primary);
+        }
+
+        /* 代码与引用 */
+        pre {
+            background: var(--code-bg);
+            color: var(--code-text);
+            padding: 24px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'Fira Code', 'Monaco', monospace;
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        code {
+            font-family: 'Fira Code', monospace;
+            background: var(--border);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background: transparent;
+            padding: 0;
+        }
+
+        blockquote {
+            background: var(--bg-card);
+            border-left: 6px solid var(--accent);
+            padding: 20px 30px;
+            margin-bottom: 32px;
+            border-radius: 0 12px 12px 0;
+            font-style: italic;
+            box-shadow: 4px 4px 0 var(--border);
+        }
+
+        /* 表格样式 */
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+        }
+
+        th, td {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+
+        th {
+            background: var(--bg-body);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Mermaid 图表自适应 */
+        .mermaid {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* 动画 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease-out;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 打印样式 */
+        @media print {
+            /* 重置动画 — 打印时所有内容必须可见 */
+            .reveal {
+                opacity: 1 !important;
+                transform: none !important;
+            }
+
+            /* 页面基础 */
+            * { transition: none !important; animation: none !important; }
+            body { background: white; color: #000; font-size: 11pt; line-height: 1.6; }
+            .container { max-width: 100%; padding: 0; }
+
+            /* 首页封面 */
+            header {
+                min-height: auto;
+                padding: 40px 0 30px;
+                border-bottom: 2px solid #000;
+                page-break-after: always;
+            }
+            .hero-logo { width: 48px; margin-bottom: 20px; }
+            .hero-title { font-size: 28pt; }
+            .hero-subtitle { font-size: 13pt; margin-bottom: 16px; }
+            .hero-divider { background: #000; }
+            .hero-pillars { gap: 8px; margin-bottom: 20px; }
+            .hero-pillar { border-color: #999; font-size: 9pt; }
+            .badge-version { border: 1px solid #999; color: #333; font-size: 9pt; }
+            .abstract-box {
+                border: 1px solid #ccc;
+                border-left: 3px solid #000;
+                background: #f9f9f9;
+                box-shadow: none;
+                padding: 14px 18px;
+            }
+
+            /* 目录 */
+            .toc {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                margin: 20px 0;
+                padding: 20px;
+                page-break-after: always;
+            }
+            .toc a { color: #000; text-decoration: none; }
+            .toc a::after { content: leader('.') target-counter(attr(href), page); }
+            .toc ul { display: block; }
+            .toc li { margin-bottom: 6px; }
+
+            /* 章节 */
+            section { page-break-before: always; padding: 0; }
+            section:first-child { page-break-before: avoid; }
+            h1 { font-size: 18pt; border-bottom: 1.5px solid #000; padding-bottom: 6px; margin-bottom: 14px; }
+            h2 { font-size: 13pt; margin-top: 18px; }
+            h3 { font-size: 11pt; }
+
+            /* 表格 */
+            .table-container { overflow: visible; }
+            table { width: 100%; border-collapse: collapse; font-size: 9pt; page-break-inside: auto; }
+            th, td { border: 1px solid #bbb; padding: 5px 8px; }
+            th { background: #eee !important; color: #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            tr { page-break-inside: avoid; }
+
+            /* 代码 */
+            pre, code {
+                background: #f4f4f4 !important;
+                color: #000 !important;
+                border: 1px solid #ccc;
+                font-size: 8.5pt;
+                page-break-inside: avoid;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Mermaid 图 — 保留渲染结果，隐藏原始文本 */
+            .mermaid { page-break-inside: avoid; max-width: 100%; }
+
+            /* 引用块 */
+            blockquote {
+                border-left: 3px solid #000;
+                background: #f9f9f9 !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                page-break-inside: avoid;
+            }
+
+            /* 隐藏不必要元素 */
+            .badge-version { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img
+            class="hero-logo"
+            src="docs/88_visual_identity/assets/logo.svg"
+            alt="Aether Logo"
+            onerror="this.onerror=null;this.src='docs/88_visual_identity/assets/aetherlogo.png';"
+        >
+        <h1 class="hero-title">Aether 时空格网引擎</h1>
+        <div class="hero-divider"></div>
+        <p class="hero-subtitle">面向海量时空动态信息的实时计算底座</p>
+        <span class="badge-version">v1.1 &nbsp;·&nbsp; 2026年3月</span>
+        <div class="hero-pillars">
+            <span class="hero-pillar">空间计算底座</span>
+            <span class="hero-pillar">高性能时空推演</span>
+            <span class="hero-pillar">链接世界模型</span>
+        </div>
+        <div class="abstract-box">
+            <p style="margin:0; color: var(--text-main); font-size:0.95rem; line-height:1.7;">
+                本白皮书旨在阐明 Aether (æ) 计算引擎的核心架构、部署集成路径以及配套生态体系。
+            </p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 目录 -->
+        <nav class="toc">
+            <h2>目录导航</h2>
+            <ul>
+                <li><a href="#ch0">0. 阅读指引与执行摘要</a></li>
+                <li><a href="#ch1">1. 设计哲学与时空本体论</a></li>
+                <li><a href="#ch2">2. 快速部署与基础架构体系</a></li>
+                <li><a href="#ch3">3. 底层内核</a></li>
+                <li><a href="#ch4">4. API 扩展与集成契约规范</a></li>
+                <li><a href="#ch5">5. 服务集群与全栈工具链生态</a></li>
+                <li><a href="#ch6">6. 系统基准性能与节点容量预测分析</a></li>
+                <li><a href="#ch7">7. 实施路线与工程治理建议</a></li>
+                <li><a href="#ch8">8. 术语与缩写表</a></li>
+            </ul>
+        </nav>
+
+        <article>
+            <section id="ch0" class="reveal">
+                <h1>0. 阅读指引与执行摘要 (Executive Summary)</h1>
+                <p>本白皮书面向三类读者：技术决策者、平台架构师、行业插件开发团队。若你希望在最短时间内建立决策判断，可按以下路径阅读：</p>
+                <ol>
+                    <li><strong>先看第 1 章与第 3 章</strong>：建立 Aether 的底层世界观与核心计算模型，理解为何其并发体系可替代传统“状态快照 + 锁协同”。</li>
+                    <li><strong>再看第 2 章与第 6 章</strong>：快速判断部署可行性、节点规格、容量边界与集群扩展策略。</li>
+                    <li><strong>最后看第 4 章与第 5 章</strong>：明确插件开发边界、服务协作面、可视化及 AI 接入闭环。</li>
+                </ol>
+                <blockquote>
+                    <strong>一句话定位：</strong>Aether 是面向高动态、高并发、强审计场景的时空计算底座，其核心价值在于“事件驱动并发 + 可回放可追溯 + 工程级集群编排”。
+                </blockquote>
+                <p><strong>关键结论：</strong>在满足裸金属服务器部署（Bare-metal，即不使用虚拟化容器）、CPU 核心独占绑定（绑核）、大页内存启用（HugePages）、实时调度优先级等基础工程条件下，Aether 可作为城市级时空业务的统一底盘，向上兼容传统 GIS 客户端并向下承载 C 插件生态，形成"计算-渲染-AI"一体化链路。</p>
+            </section>
+
+            <section id="ch1" class="reveal">
+                <h1>1. 设计哲学与时空本体论 (Philosophy)</h1>
+                <p>Aether 引擎为了解决在极大规模高动态并发场景下的“状态冲突、锁争用与不可追溯”难题，从底层架构上重塑了空间系统的世界观：</p>
+                <ul>
+                    <li><strong>万物皆事件 (Event-driven)</strong>：摒弃传统游戏引擎的“实体状态快照”修改方式。世界由瞬间构成、不断生灭的微小“事件”堆叠而成。依托 <strong>MPMC 无锁环形队列</strong>，实现系统事件并行投递与独立结算，彻底杜绝了并发过程中的多线程锁竞争。</li>
+                    <li><strong>状态即过程与可溯源</strong>：基于底层内存池中的顺序事件记录，系统能够 100% 审计并回放出任意历史时刻的高精度物理切片，提供军工级的可审计能力。</li>
+                    <li><strong>Aether 时空本体论 (Ontology)</strong>：受 Palantir Ontology 启发，系统不对外暴露孤立的 X, Y, Z 坐标数据流，而是向上层应用提供具有<strong>语义层 (对象与物理链接)</strong>、<strong>动力层 (操作把手与动作定义)</strong>与<strong>动态层 (快照时序演化)</strong>的空间知识图谱。这不仅规范了业务系统的接入标准，更为未来大语言模型 (LLM) 接入行业调度系统提供了原生语境支持。</li>
+                </ul>
+            </section>
+
+            <section id="ch2" class="reveal">
+                <h1>2. 快速部署与基础架构体系 (Quickstart)</h1>
+                <p>Aether 在物理架构上明确分为两个层次：内核库级别的 <strong>Aether Kernel</strong> 和提供高并发网络支持的 <strong>Aether Server</strong> 集群。开发者可根据业务需求选择三种集成方式：</p>
+
+                <h2>2.1 方式一：直联集成内核计算能力 (Aether Kernel)</h2>
+                <p>适用于对延迟极其敏感的边缘计算场景，或需要将 Aether 空间计算能力深度集成到现有系统中的情况。业务方可直接链接纯 C 环境编写的底层动态库 <code>libae.so</code>。</p>
+                <ul>
+                    <li><strong>生命周期接管</strong>：开发者需要在业务代码中手动管理系统运算流程。包括调用 <code>memarena_init</code> 初始化大页内存 (HugePages)、创建支持 LOD 的实体金字塔索引，并通过主事件循环 (Main Loop) 驱动 Pyraman 调度器运行。</li>
+                    <li><strong>注册事件钩子 (Event Hooks)</strong>：使用 <code>dlopen/dlsym</code> 或直接注册回调函数，将外部业务逻辑以事件形式挂载至无锁环形缓冲区 <code>ringbuf</code>。</li>
+                    <li><strong>核心收益</strong>：以极低网络通信开销和纳秒级延迟，获得强大的并行时空计算能力。</li>
+                </ul>
+                <pre><code># 引用头文件，将业务逻辑与 aether_core 动态库链接
+gcc my_collision_plugin.c -laether_core -O3 -o my_standalone_engine
+
+# 提升进程实时级别并启动，确保时钟确定性
+chrt -f 99 ./my_standalone_engine</code></pre>
+
+                <h2>2.2 方式二：部署 Aether Server 工业集群网络</h2>
+                <p>适用于省市级千万级并发推演的大型态势感知系统（如城市全域无人机统一调度）。此时开发者无需直接调用底层库，而是部署封装好的 Aether Server 微服务集群。</p>
+                <ul>
+                    <li><strong>ST UDP Gateway (强并发接入层)</strong>：摒弃传统 Epoll 架构，采用基于 State Threads (ST 协程) 的高性能网关。配合 Linux 内核原生支持的 <code>SO_REUSEPORT</code>，将海量数据包均衡分发到多条处理流水线，单信道上下文切换延迟低于 <strong>200ns</strong>。</li>
+                    <li><strong>AP (Aether Pyramid 计算分片)</strong>：分布式算力矩阵的核心执行单元。每个 AP 进程绑定独立 CPU 核心，负责特定地理区域计算任务。通过本地缓存和底层 IPC 机制 <code>eventfd</code> 与网关联动，实现零内存拷贝的数据传递。</li>
+                    <li><strong>AS (Aether Sphinx 路由中枢)</strong>：负责协调多个 AP 分片，构建全局统一坐标网络。当查询请求跨越多个分片边界时，AS 执行 Map-Reduce 模式的聚合过滤，有效降低大规模并发查询复杂度。</li>
+                </ul>
+                <blockquote>
+                    <strong>部署红线限制：</strong>系统高度依赖底层硬件资源调度机制。为消除缺页中断、保障大页缓存效率以及精确控制 <code>SCHED_FIFO</code> 调度优先级与 <code>NUMA</code> 节点绑定，必须采用 <strong>Bare-metal (裸金属) 原生部署</strong>。<strong>严禁</strong>使用 K8s 或 Docker 等虚拟化容器平台，这些平台的高隔离特性会严重阻碍系统性能。
+                </blockquote>
+
+                <h2>2.3 方式三：极速存量系统接入方案 (AE-EXT)</h2>
+                <p>对于已拥有成熟三维可视化管线的业务方，Aether Server 提供了 AE-EXT (Aether Extension) 协议适配层，可实现向下兼容的无缝对接。</p>
+                <ul>
+                    <li><strong>显式寻址兼容</strong>：针对使用 3DTiles / I3S 架构的客户端，引擎能够实时监测空间体素变化，并以超低延迟动态生成 <code>tileset.json</code> 索引文件推送给前端。单次寻址平均延迟仅增加 <strong>0.8ms ~ 2.4ms</strong>，使前端系统感觉仍在请求普通静态文件。</li>
+                    <li><strong>隐式网格回归</strong>：将 Aether 的高频事件推演结果伪装成传统数据格式。针对使用特定寻址规则的客户端（如 OSGB/PagedLOD 的文件目录树映射），AE-EXT 严格模拟目标系统的格网编号逻辑，让客户端完全按照既定习惯读取 Aether 的实时计算结果。</li>
+                </ul>
+                <p><strong>核心收益</strong>：开发者无需修改前端代码。只需将数据源 URL 指向 AE-EXT 节点，即可将传统基于静态离线数据的 GIS 服务，平滑升级为支持百万级目标实时推演的动态空间计算系统。单节点可稳定承载 <strong>5000+</strong> 客户端的高频异步请求。</p>
+                <pre><code># 存量系统接入示例：仅修改数据源地址，前端代码零改动
+# 原静态瓦片地址
+url: "https://static-cdn.example.com/tiles/city/{z}/{x}/{y}.json"
+
+# 替换为 AE-EXT 节点地址
+url: "http://ae-ext.your-server:8080/tiles/city/{z}/{x}/{y}.json"
+# AE-EXT 会实时从 Aether 引擎生成对应瓦片，接口保持完全兼容</code></pre>
+
+                <h2>2.4 三种集成方式选型矩阵</h2>
+                <p>为避免“先部署再返工”，建议在立项阶段即完成选型评审。下表给出推荐判定：</p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>评估维度</th>
+                                <th>方式一：Kernel 直联</th>
+                                <th>方式二：AE-Server 集群</th>
+                                <th>方式三：AE-EXT 兼容接入</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>核心目标</td>
+                                <td>极低时延与本地闭环</td>
+                                <td>区域级/城市级并发调度</td>
+                                <td>最小改造成本快速上线</td>
+                            </tr>
+                            <tr>
+                                <td>改造成本</td>
+                                <td>高（需接管生命周期）</td>
+                                <td>中（服务化编排）</td>
+                                <td>低（前端基本无改动）</td>
+                            </tr>
+                            <tr>
+                                <td>性能上限</td>
+                                <td>最高（去网络层）</td>
+                                <td>高（横向扩容）</td>
+                                <td>中高（受兼容层约束）</td>
+                            </tr>
+                            <tr>
+                                <td>典型场景</td>
+                                <td>边缘推理/车载/单站控制</td>
+                                <td>省市级态势中枢与协同</td>
+                                <td>存量 GIS 升级与平滑替换</td>
+                            </tr>
+                            <tr>
+                                <td>推荐组织能力</td>
+                                <td>C/C++ 资深内核团队</td>
+                                <td>平台工程 + 运维协同团队</td>
+                                <td>业务开发 + 轻量平台团队</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="ch3" class="reveal">
+                <h1>3. 底层内核 (Core Subsystems)</h1>
+                <p>Aether 的强大并发性能源自其内核中精简高效的 C 语言数据结构设计。这些组件共同构成了稳定可靠的核心运算引擎：</p>
+                <ul>
+                    <li><strong>动态体素金字塔网格 (Spatial Grid)</strong>：一套支持多层级细节 (LOD) 的离散网格系统，提供 O(1) 复杂度的模型查询能力。摒弃传统四叉树/八叉树方案中耗时的指针跳转与内存碎片问题，通过精巧的层次回调验证机制，快速完成碰撞检测与空间过滤。</li>
+                    <li><strong>无原型实体组件体系 (Archetype-less ECS)</strong>：为最大化 CPU 缓存命中率 (L1/L2)，系统采用扁平化内存布局策略，避免原型迁移时的数据拷贝开销。所有对象组件均以位掩码方式组织，实现 O(1) 时间复杂度的组件挂载与卸载。</li>
+                    <li><strong>Pyraman 调度中枢与事件计时器</strong>：Pyraman（引擎内置的事件驱动调度器）将所有状态变更通过事件总线提交至 MPMC 无锁环形缓冲区。系统基于多层嵌套的时间轮结构调度回调请求，有效避免传统并发编程中的锁竞争 (Lock Contention) 问题。</li>
+                    <li><strong>双金字塔原子场 (Double Pyramid)</strong>：专为处理气象云图、传感器探测等高速动态场数据而设计。通过在 Standby(备用) 和 Active(活动) 两个计算面之间进行“读写分离”，仅需一次原子指针交换操作 (Pointer Swap)，即可在微秒级时间内完成整个计算面的无缝切换。</li>
+                </ul>
+                <div class="mermaid">
+                flowchart TD
+                    classDef ext  fill:#4a5568,stroke:#2d3748,stroke-width:2px,color:#fff
+                    classDef grid fill:#2b6cb0,stroke:#2c5282,stroke-width:2px,color:#fff
+                    classDef ecs  fill:#276749,stroke:#22543d,stroke-width:2px,color:#fff
+                    classDef sched fill:#744210,stroke:#975a16,stroke-width:2px,color:#fff
+                    classDef dp   fill:#553c9a,stroke:#44337a,stroke-width:2px,color:#fff
+                    classDef out  fill:#2d3748,stroke:#4fd1c5,stroke-width:2px,color:#fff
+
+                    EXT["外部事件输入<br/>(插件 / 网关 / 传感器)"]:::ext
+
+                    subgraph KERNEL["Aether 底层内核"]
+                        direction TB
+                        GRID["体素金字塔格网<br/>O(1) 空间预筛 · LOD 索引"]:::grid
+                        ECS["无原型 ECS<br/>位掩码组件 · 零拷贝布局"]:::ecs
+                        SCHED["Pyraman 调度中枢<br/>MPMC 环形缓冲 · 时间轮"]:::sched
+                        DP["双金字塔原子场<br/>Active ↔ Standby 指针原子切换"]:::dp
+                    end
+
+                    ACTION["动作总线输出<br/>(渲染 / 告警 / 存档)"]:::out
+
+                    EXT -->|"写入 ringbuf"| SCHED
+                    SCHED -->|"候选实体 ID 集"| GRID
+                    GRID -->|"精确命中实体"| ECS
+                    ECS -->|"封装 action_event"| SCHED
+                    DP -->|"只读快照注入"| GRID
+                    SCHED -->|"发布事件流"| ACTION
+                </div>
+                <h2>3.1 事件数据生命周期</h2>
+                <p>从工程治理角度，Aether 中每个事件都应被视为“可审计资产”。典型生命周期如下：</p>
+                <ol>
+                    <li><strong>接入</strong>：外部消息由网关或本地插件写入 ringbuf，附带时间戳、实体 ID、空间索引与来源标记。</li>
+                    <li><strong>预筛</strong>：金字塔索引先执行 O(1) 候选过滤，剔除绝大多数无效对象组合。</li>
+                    <li><strong>结算</strong>：调度器按时间轮策略消费事件，并调用业务插件完成规则判定与动作生成。</li>
+                    <li><strong>发布</strong>：动作被封装为 action_event 推送总线，供渲染、告警或外部系统订阅。</li>
+                    <li><strong>归档</strong>：关键事件及快照被落地用于回放、审计、演练复盘与故障追踪。</li>
+                </ol>
+            </section>
+
+            <section id="ch4" class="reveal">
+                <h1>4. API 扩展与集成契约规范 (API Reference)</h1>
+                <p>Aether 将引擎底盘收编为绝对中立状态。这意味着所有关于行业专有审批、特定轨迹排拒规范算法逻辑必须以<strong>业务端扩展插件（Plugins）</strong>形式交付。它立足于三道工程纪律基线：</p>
+                <h2>4.1 C ABI 插件沙箱机制</h2>
+                <ul>
+                    <li><strong>Bring Your Own Data/Algorithm (自带结构数据)</strong>：用户不需要推翻重写多年优化的底层算法，也不需要强行继承引擎对象基类。引擎只认 64 位 ID 和包围盒。用户专有复杂图谱数据可安稳放在自身内存里，引擎绝不越权强行解析。</li>
+                    <li><strong>免费获得亿级并发加速</strong>：空间预筛是极耗算力的操作。用户只需编写单线程判断插件，底层金字塔结合 MPMC 会自动在后台将亿级对象筛选至最终数个候选实体再交给插件处理，黑盒算法也能直接享受并发加速。</li>
+                    <li><strong>彻底避免 C++ 符号污染</strong>：通过 <code>dlopen()</code> 在冷启动或热更时挂载 <code>.so</code> / <code>.dylib</code> 模块，强制所有接口置于 <code>extern "C"</code> 下，从根本上消除 C++ 命名修饰带来的链接兼容问题。</li>
+                </ul>
+                <h2>4.2 内存安全边界</h2>
+                <p>核心规则只有一条：引擎数据只读，插件不得持有任何引用。</p>
+                <ul>
+                    <li><strong>只读数据传递</strong>：引擎通过 <code>const</code> 常量指针向插件传递场景快照，插件只能读取数据，无法修改引擎内存。</li>
+                    <li><strong>内存隔离要求</strong>：插件禁止向引擎传入 <code>free()</code>，也禁止将引擎地址存入静态变量。插件如需分配内存，须使用自己的 <code>malloc</code> 并自行负责释放。</li>
+                </ul>
+                <pre><code>/**
+ * @brief 空间体素状态更新事件通知回调函数。
+ * @param event 包含发生坐标及触发因子的不可变事件数据状态。
+ * @param user_data 开发者注入的自定义业务上下文地址。
+ * @warning 该回调将在无锁队列的消费线程中中异步拉起。严禁阻塞式系统调用（如原生阻塞 I/O）。
+ */
+typedef void (*voxel_update_cb_t)(const ae_event_t *event, void *user_data);</code></pre>
+                <h2>4.3 动作指令的安全下发机制</h2>
+                <p>插件完成算法后，不能直接调用引擎接口下发动作。所有意图必须封装为 <code>action_event_t</code>，经由 <code>ae_subscribe_event</code> 送入无锁消息队列异步消费。即便插件发生死锁，独立运行的看门狗（Orchestrator Dog）也能及时介入，保护整个服务集群不受影响。</p>
+            </section>
+
+            <section id="ch5" class="reveal">
+                <h1>5. 服务集群与全栈工具链生态 (Service & Toolchains)</h1>
+                <p>在纯计算内核基础上，Aether 构建了完整生态系统，包括三维可视化监控和智能 AI 大语言模型代理网络：</p>
+                
+                <h2>5.1 Aether Server 分布式实时协同集群 (AE-Server)</h2>
+                <p>作为封装内核并向外提供算力的分布式框架，AE-Server 基于 C 语言与协程模型，实现高并发 I/O 隔离与跨进程通信调度：</p>
+                <ol>
+                    <li><strong>流式交互与跨分片编排 (Data Pipeline)</strong>：针对单一目标点查询请求，ST UDP 网关直接路由到对应 AP 的独立 Ringbuf，通过 <code>eventfd</code> 机制将轮询等待成本降至最低；面对覆盖超广域的聚合查询请求，利用 AS 执行全局 Fan-out 查询，将请求分发至数十个计算进程进行局部处理后再 Reduce 聚合，最终快速生成全局态势图。</li>
+                    <li><strong>物理级内存隔离与扩容 (Bare-metal Scaling)</strong>：拒绝使用复杂云化动态负载均衡算法。架构依赖底层大页表 (HugePages) 构建进程间 IPC 通道，通过强制 CPU 绑核机制实现资源切片和线性扩容。</li>
+                    <li><strong>零中断平滑热更新 (Graceful Updates)</strong>：通过共享内存实现业务状态分离。运维节点启动新版本进程并完成路由接管后，旧版本进程继续处理完队列中剩余任务后自动退出，实现计算网格层毫秒级无损版本迭代。</li>
+                </ol>
+                <div class="mermaid">
+                flowchart TD
+                    classDef core fill:#2d3748,stroke:#4fd1c5,stroke-width:2px,color:#fff
+                    classDef as fill:#2b6cb0,stroke:#2c5282,stroke-width:2px,color:#fff
+                    classDef ap fill:#c53030,stroke:#9b2c2c,stroke-width:2px,color:#fff
+                    
+                    CLIENTS["多端同步请求 (Clients)"]
+                    UDP["ST UDP Gateway (强并发网关)<br/>SO_REUSEPORT 分流"]:::core
+                    AS_NODE["AS (Aether Sphinx 路由中枢)<br/>Fan-out / Reduce 聚合"]:::as
+                    
+                    CLIENTS <-->|"高频态势上报 / 获取"| UDP
+                    UDP <-->|"Eventfd O(1) 分发"| AS_NODE
+                    
+                    subgraph "计算分片集群 (Bare-metal NUMA)"
+                        direction LR
+                        AP1["AP 分片 1 (Aether Pyramid)<br/>管辖网格区 A"]:::ap
+                        AP2["AP 分片 2 (Aether Pyramid)<br/>管辖网格区 B"]:::ap
+                        APn["AP 分片 N (Aether Pyramid)<br/>管辖网格区 N"]:::ap
+                    end
+                    
+                    AS_NODE <-->|"0拷贝本地环传递"| AP1
+                    AS_NODE <-->|"0拷贝本地环传递"| AP2
+                    AS_NODE <-->|"0拷贝本地环传递"| APn
+
+                    AP1 <-.->|"极速切片热更接管"| AP1_NEW["AP 分片 1 (新版本)"]
+                </div>
+
+                <h2>5.2 AVA 视觉架构引擎枢纽 (Aether Visualization Architecture)</h2>
+                <p>AVA 不是单纯图形库，而是连接内核与渲染后端的“智能翻译层”。它作为挂接在内核底层的“<strong>绝对单向只读观测层</strong>”，负责从高频事件流中提取数据并决定展示内容，但绝不反向干扰引擎时序运行。</p>
+                <ul>
+                    <li><strong>Cairo 2D 渲染模块</strong>：无需遍历组件树，直接从线性内存数组中提取线段、热点坐标，由 Cairo 快速绘制。适用于构建大型战术指挥板与二维沙盘面板。</li>
+                    <li><strong>VKDK 管线架构 (Vulkan Dev Kit)</strong>：充分践行面向数据 (Data-Oriented) 设计原则。利用纯连续数组直接无缝对接 Vulkan 原生 SSBO (Shader Storage Buffer Object)，并通过 <code>vkCmdDrawIndirect</code> 间接绘制指令实现爆发式渲染。</li>
+                    <li><strong>3DGS 动态高斯泼溅 (Gaussian Splatting)</strong>：面对数亿微粒堆叠的超大体量点云渲染，引擎通过金字塔建立 O(1) 复杂度的多级分辨率 LOD 索引。依靠只读快照机制提取渲染指令送至显卡进行分级过滤，支持无限细节的真实数字孪生场景渲染。</li>
+                </ul>
+
+                <div class="mermaid">
+                flowchart TD
+                    classDef engine fill:#2d3748,stroke:#4fd1c5,stroke-width:2px,color:#fff
+                    classDef ava fill:#d69e2e,stroke:#b7791f,stroke-width:2px,color:#fff
+                    classDef render fill:#4a5568,stroke:#2d3748,stroke-width:2px,color:#fff
+
+                    AP["Aether Pyramid 计算底盘<br/>(MPMC 无锁队列)"]:::engine
+                    AVA["AVA 视觉引擎枢纽<br/>O(1) 过滤筛选提取"]:::ava
+                    
+                    AP == "共享大页内存 (0拷贝)" ==> AVA
+                    
+                    subgraph "Render Adapters (渲染适配器)"
+                        direction LR
+                        R_2D["AVA-2D<br/>Cairo 拓扑板"]:::render
+                        R_VK["AVA-VK<br/>VKDK 底层接口"]:::render
+                        R_GS["AVA-3DGS<br/>高斯泼溅流"]:::render
+                    end
+                    
+                    AVA -->|"线段/热点聚合"| R_2D
+                    AVA -->|"SSBO 指令爆发"| R_VK
+                    AVA -->|"LOD 快照索引"| R_GS
+                    
+                    R_2D -.->|"态势大屏"| UI["指挥决策终端"]
+                    R_VK -.->|"硬件渲染"| GPU["GPU 物理管线"]
+                    R_GS -.->|"数字孪生"| TWIN["超写实沙盘"]
+                </div>
+
+                <h2>5.3 大语言模型接入框架 (LLM Agent Framework)</h2>
+                <p>针对大语言模型高度依赖 Context 窗口且"计算能力相对较弱"的特点，Aether 设计了防宕机事件中继架构，通过 <strong>MCP（Model Context Protocol，模型上下文协议）</strong> 标准化 AI 与引擎的交互边界，避免直接向 LLM 投喂原始坐标数据。在这个架构下，AI 与引擎交互被严格规范为六个阶段：</p>
+                <ol>
+                    <li><strong>全局概览优先</strong>：初始接入时，不向模型传入原始坐标数据，只提供从金字塔 Level 0–2 层提取的高层概览信息，让 AI 先建立全局认知。</li>
+                    <li><strong>聚焦点拉取指令 (MCP Tools)</strong>：限制大模型只能通过调用预定义的原子技能 (MCP Tools)，才能获取指定聚焦区域内的细粒度矢量结构数据。</li>
+                    <li><strong>几何计算卸载</strong>：当 AI 检测到两个目标相互逼近时，绝对禁止 AI 自行计算几何布尔碰撞。所有复杂空间几何裁切与布尔运算必须通过专用中继打回 Aether 底座，由底层 C 算法库完成极值计算后仅返回 True/False 的确定性结论。</li>
+                    <li><strong>增量事件流订阅</strong>：在平稳监控阶段，LLM 不再执行高消耗的全量轮询 (Polling)，改为订阅 <code>ringbuf</code> 底层推送的增量事件流（如 <code>ENTITY_MOVE</code>），大幅降低数据传输负载。</li>
+                    <li><strong>可视化快照烘焙</strong>：LLM 在上报决策结果时，可调用下游 AVA 模块截取当前推演热区的 2D/3D 图像 (Base64 JPEG 格式) 作为辅助汇报依据。</li>
+                    <li><strong>数据令牌传递 (Token View)</strong>：当查询涉及海量体素时，框架禁止将数据序列化为文本传输。仅向大模型返回轻量的 <code>VIEW_TOKEN_8F9A2C</code> 令牌，由 LLM 将其转发给渲染客户端完成可视化，从根本上规避传输过载。</li>
+                </ol>
+
+                <h2>5.4 空间分析能力分级 (Spatial Analysis Domains)</h2>
+                <p>通过逻辑解耦，Aether 建立了三个递进式空间分析计算管线：</p>
+                <ul>
+                    <li><strong>第一级格网域 (Grid Computing)</strong>：基于 Hilbert 曲线与空间降维编码，原生兼容 S2、H3 以及国家级三维正方体空间剖分标准。集成完整地图代数 (Map Algebra) 框架，支持高通滤波区域算子，并通过极速自适应反距离权重 (IDW) 算法及克里金 (Kriging) 最优无偏估计插值，还原大规模空间曲面场分布。</li>
+                    <li><strong>第二级经典拓扑域 (Classical Computing)</strong>：依托 Martinez-Rueda-Feito (MRF) 布尔裁剪算法和 Point-in-Polygon (PIP) 环绕数验证法，执行高精度地理图形的剖切、拼接、合并、打洞等经典几何运算，确保拓扑关系绝对无损。</li>
+                    <li><strong>第三级知识图谱域 (Knowledge SKG)</strong>：面向多要素关联分析。采用 DBSCAN/HDBSCAN 密度聚类算法识别空间热点区域，引入 Spatial PageRank 链路分析技术深入解析大规模动态交通网络、物流线路的传导关系与故障溯源。</li>
+                </ul>
+
+                <div class="mermaid">
+                flowchart LR
+                    classDef source fill:#4a5568,stroke:#2d3748,stroke-width:2px,color:#fff
+                    classDef domain1 fill:#2b6cb0,stroke:#2c5282,stroke-width:2px,color:#fff
+                    classDef domain2 fill:#319795,stroke:#285e61,stroke-width:2px,color:#fff
+                    classDef domain3 fill:#805ad5,stroke:#553c9a,stroke-width:2px,color:#fff
+
+                    RAW["宏观原始数据流<br/>(无人机群/遥感/轨迹)"]:::source
+                    
+                    D1["第一级：离散格网域<br/>(S2 / H3)<br/>99% O(1) 预过滤拦截"]:::domain1
+                    D2["第二级：经典拓扑域<br/>(MRF 布尔裁剪)<br/>精密几何解析与归属"]:::domain2
+                    D3["第三级：知识图谱域<br/>(DE-9IM / PageRank)<br/>事件逻辑与深度溯源"]:::domain3
+                    
+                    RAW --> D1
+                    D1 -->|"提取碰撞候选(假阳性过滤)"| D2
+                    D2 -->|"输出验证拓扑关系"| D3
+                    D3 -->|"反馈高层指挥网络"| ACTION(("业务<br/>动作"))
+                </div>
+            </section>
+
+            <section id="ch6" class="reveal">
+                <h1>6. 系统基准性能与节点容量预测分析 (Benchmarks & Capacities)</h1>
+                <p>以下是 Aether 在大规模场景下的性能基准与容量上限：</p>
+                <h2>6.1 核心并发性能指标</h2>
+                <ul>
+                    <li><strong>索引查询吞吐量</strong>：在标准 x86 平台上（单 CPU 核心），依托 O(1) 索引结构与 memarena 无锁通道，系统可稳定维持<strong>超过 800 万 ~ 千万次/秒</strong>的事件查询与状态更新处理。</li>
+                    <li><strong>高频动态实体容量</strong>：在高时延敏感、小尺度密集碰撞检测场景中，底层系统仍能支持<strong>20 万至 50 万+</strong>个高频动态对象持续进行状态更新，维持全场景 100Hz 刷新率稳定运行而不衰减。</li>
+                </ul>
+
+                <h2>6.2 城域级网格内存容量规划</h2>
+                <p>（基于典型测试场景：纵深 20km × 20km、高度 1.5km 的城市立体空间，格网内存单位标准 1 Byte/Voxel）</p>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>内存物理规划 (RAM)</th>
+                                <th>Aether 全量格网吞吐预设</th>
+                                <th>极限切分覆盖精度</th>
+                                <th>AE 稀疏策略下最大支持能力</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>16 GB (Tier 1 车载板端)</strong></td>
+                                <td>约 171 亿个</td>
+                                <td>3.27 米</td>
+                                <td>局部支持 10cm 级极精细解算与避障</td>
+                            </tr>
+                            <tr>
+                                <td><strong>64 GB (Tier 2 边缘基站)</strong></td>
+                                <td>约 687 亿个</td>
+                                <td>2.06 米</td>
+                                <td>覆盖辖区半径 &gt;20km 的超宽频流量</td>
+                            </tr>
+                            <tr>
+                                <td><strong>128 GB (Tier 2.5 枢纽中心)</strong></td>
+                                <td>约 1,374 亿个</td>
+                                <td><strong>0.81 米 (亚米级)</strong></td>
+                                <td>支撑全省干线级别的多级亚米级网格管控</td>
+                            </tr>
+                            <tr>
+                                <td><strong>512 GB+ (Tier 3 云端算力群)</strong></td>
+                                <td>约 5,500 亿个</td>
+                                <td>厘米级无限扩展</td>
+                                <td>跨城市级 (Multi-City) 高清动态云联动底座</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p><strong>部署层级说明：</strong></p>
+                <ul>
+                    <li><strong>Tier 1: 边缘微节点 (16G - 32G)</strong>：适用于基础设施受限的前线边缘设备、小规模空管与防碰撞现场控制终端。可管理近 170 亿个网格单元，并在核心区域维持 10 厘米级精确控制精度。</li>
+                    <li><strong>Tier 2: 重点分流服务器 (64G - 128G)</strong>：适配大容量高频运转服务器集群。足以支撑辐射范围超过几十公里的高频区域网络枢纽，提供从全局概览到局部 5cm 精度的高质量数据中转与分发能力。</li>
+                    <li><strong>Tier 3: 全国高性能算力群/行业中心云平台 (256G - TB 级)</strong>：全景容量支持容错性极高的全区域联动网络集群，充当应对数百万连接并发的视图渲染与计算主脑。</li>
+                </ul>
+
+                <h2>6.3 快速容量估算方法（工程实践）</h2>
+                <p>在项目早期评审，可用以下简化方法估算资源需求：</p>
+                <pre><code>目标体素总量 V = 覆盖体积 / 单体素体积
+内存基线 M_base = V x 每体素字节数
+并发余量 M_total = M_base x (1 + 事件峰值系数 + 回放保留系数)
+CPU 核数建议 C = (峰值事件吞吐 / 单核稳定吞吐) x 安全系数</code></pre>
+                <p>建议工程上采用“<strong>先保守、后压测、再扩容</strong>”策略：先按 P95 负载做容量规划，待接入真实业务流量后，依据监控指标回填模型并滚动修正参数。</p>
+            </section>
+
+            <section id="ch7" class="reveal">
+                <h1>7. 实施路线与工程治理建议 (Implementation Roadmap)</h1>
+                <p>为了降低上线风险，推荐将 Aether 的落地拆分为三个阶段：</p>
+                <h2>7.1 Phase A：技术验证 (PoC)</h2>
+                <ul>
+                    <li>选取 1 至 2 个高价值业务流程，定义明确成功指标（时延、吞吐、误报率、回放一致性）。</li>
+                    <li>构建最小可运行链路：网关接入、核心事件、单插件判定、可视化回传。</li>
+                    <li>完成基线压测，输出瓶颈定位报告与硬件规格建议。</li>
+                </ul>
+
+                <h2>7.2 Phase B：灰度并行</h2>
+                <ul>
+                    <li>采用双写或镜像流量策略，让旧系统与 Aether 并行运行，持续对比结果一致性。</li>
+                    <li>建立异常处置机制：队列积压、热点分片失衡、插件超时、事件风暴等故障预案。</li>
+                    <li>通过可观测性看板建立“事件速率-处理时延-资源占用”三轴监控闭环。</li>
+                </ul>
+
+                <h2>7.3 Phase C：生产切换</h2>
+                <ul>
+                    <li>按区域或业务域分批切换，优先从低风险场景开始，逐步扩大覆盖范围。</li>
+                    <li>启用热更新机制，确保插件版本迭代与回滚流程可验证、可演练、可审计。</li>
+                    <li>建立季度容量复盘制度，持续修正分片策略、绑核策略与存储保留策略。</li>
+                </ul>
+
+                <blockquote>
+                    <strong>治理建议：</strong>将“性能压测、灾备演练、审计回放一致性验证”纳入每次版本发布门禁，而非上线后的补救动作。
+                </blockquote>
+            </section>
+
+            <section id="ch8" class="reveal">
+                <h1>8. 术语与缩写表 (Glossary)</h1>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>术语</th>
+                                <th>全称/含义</th>
+                                <th>在 Aether 中的角色</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AVA</td>
+                                <td>Aether Visualization Architecture</td>
+                                <td>可视化引擎枢纽，连接计算内核与 Cairo/Vulkan/3DGS 渲染后端</td>
+                            </tr>
+                            <tr>
+                                <td>AP</td>
+                                <td>Aether Pyramid</td>
+                                <td>计算分片执行单元，承担局部区域高频事件结算</td>
+                            </tr>
+                            <tr>
+                                <td>AS</td>
+                                <td>Aether Sphinx</td>
+                                <td>跨分片路由与聚合中枢，负责全局查询协调</td>
+                            </tr>
+                            <tr>
+                                <td>AE-EXT</td>
+                                <td>Aether Extension</td>
+                                <td>存量前端兼容层，支持低成本迁移</td>
+                            </tr>
+                            <tr>
+                                <td>MPMC</td>
+                                <td>Multi-Producer Multi-Consumer</td>
+                                <td>高并发无锁队列模型，支撑事件并行投递与消费</td>
+                            </tr>
+                            <tr>
+                                <td>LOD</td>
+                                <td>Level of Detail</td>
+                                <td>分级细节控制机制，用于计算与渲染的分辨率调度</td>
+                            </tr>
+                            <tr>
+                                <td>SKG</td>
+                                <td>Spatial Knowledge Graph</td>
+                                <td>面向关联推理的时空知识组织层</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </article>
+    </div>
+
+    <!-- 加载 Mermaid 与 交互脚本 -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'neutral',
+            fontFamily: 'Inter',
+        });
+
+        // 揭示动画脚本
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
