@@ -204,7 +204,7 @@ Aether 时空本体可作为算力与物理世界之间的中间层语境：
 ---
 title: Aether 引擎：设计原则与架构导读
 description: 阐述 Aether (æ) 引擎在时空计算、事件驱动与多维格网方面的设计原则
-sidebar_position: 1
+sidebar_position: 0
 ---
 
 # Aether 引擎：设计原则与架构导读 (Design Principles)
@@ -307,7 +307,7 @@ Aether Kernel 是一套以 C 语言实现的高性能时空计算库，面向数
 
 **边界与定位：** 内核不包含网络通信模块（如 TCP/UDP Socket），也不负责服务发现与微服务编排。它主要处理坐标对齐、布尔运算与空间拓扑推理。
 
-### 1.2 Aether Server (Ae Server 分布式服务算网)
+### 1.2 Aether Server (分布式服务算网)
 为承载大规模并发接入场景，Aether 在内核之上提供了 **Aether Server**。该服务层通过硬件亲和性配置与高效 I/O 模型，支持跨节点协同计算，是生产环境的实际部署形态。
 
 ---
@@ -748,7 +748,7 @@ sidebar_position: 1
 - 微秒级事件流的时序推进与消费。
 
 **内核边界**：
-Aether 计算内核不包含网络协议栈实现、业务审批逻辑（例如航路合规校验）与可视化交互组件。
+Aether 计算内核不包含网络协议栈实现、业务处理分析逻辑与可视化交互组件。
 
 在实际交付中，这套运算内核通常封装为独立的 Aether Server 服务，再通过网络接口向低空管控系统、LLM 代理与前端应用提供能力。
 
@@ -1388,7 +1388,7 @@ Aether 服务器本身是一个无头（Headless）状态计算器。借助 Acti
 ---
 title: Aether Server 集群与配置
 description: AP 分片、AS 路由中枢与 ST UDP 网关的分布式架构及场景化配置说明。
-sidebar_position: 1
+sidebar_position: 0
 ---
 
 # Aether Server 集群与部署配置 (Aether Server Cluster)
@@ -1589,7 +1589,7 @@ sidebar_position: 4
 ---
 title: AVA 视效引擎与渲染客户端
 description: Aether 的视觉引擎与渲染客户端架构，面向动态实体场景。
-sidebar_position: 1
+sidebar_position: 0
 ---
 
 # AVA：Aether 世界的视觉引擎 (Aether Visualization Architecture)
@@ -2190,7 +2190,7 @@ Aether 的图谱不是静态的，而是基于 MPMC `ringbuf` 事件流构建动
 ---
 title: 空间分析计算域
 description: 离散格网架构、Martinez-Rueda 裁剪算子与时空知识图谱推理框架。
-sidebar_position: 3
+sidebar_position: 0
 ---
 
 # 空间分析计算域 (Spatial Analysis Domains)
@@ -2252,49 +2252,13 @@ title: "02. AE-EXT 协议适配层 (Interoperability)"
 description: "兼容存量资产 (Cesium/ArcGIS/OSGB) 的 Aether 实时数据接入方案"
 ---
 
-# AE-EXT：异构客户端协议映射与适配
+# AE-EXT 文档入口（已归并）
 
-## 1. 业务背景：兼容存量资产，降低迁移成本
-在实际工程实践中，企业用户通常拥有基于 Cesium (3DTiles)、ArcGIS (I3S) 或 PagedLOD (OSGB) 的成熟业务系统。AE-EXT 的目标是在不更改客户端核心逻辑的前提下，实现 Aether 动态空间数据的高效分发。
+为避免多处副本产生版本漂移，AE-EXT 的唯一维护文档已统一至：
 
----
+- [API 参考：AE-EXT 协议适配层](../04_api_reference/02_ae_ext_interoperability.md)
 
-## 2. 核心架构：协议合成器 (Protocol Synthesizer)
-AE-EXT 是位于 Aether Server 与外部网络间的协议转换层，具备时空感知映射能力。
-
-### 2.1 显式寻址适配 (Explicit Addressing Adapter)
-*   **适用对象**：3DTiles, I3S
-*   **技术细节**：AE-EXT 实时观测 Aether 核心格网状态，动态生成 `tileset.json` 索引。客户端发起的 Bounding Volume 寻址请求，将直接映射至 Aether 内存中的 Voxel 节点。
-*   **收益**：基于 Cesium 等标准协议的前端系统，仅需通过修改数据源 URL 即可接入 Aether 实时数据流。
-
-### 2.2 隐式寻址回归 (Implicit Addressing Adapter)
-*   **适用对象**：OSGB, PagedLOD 类传统客户端
-*   **技术细节**：针对对寻址逻辑有严格预定义要求的协议（如特定的格网编号规则），AE-EXT 采用 **Profile (预设配置)** 模式。通过模拟物理文件的目录偏移与命名逻辑，确保客户端能按照固有规则读取 Aether 动态引擎数据。
-
----
-
-## 3. 自动化配置流程 (Automatic Configuration)
-AE-EXT 提供 Profile (预设) 机制，旨在批量解决不同厂商、不同标准的数据接入配置。
-
-### 3.1 预设重用机制 (Profile Reuse)
-针对特定客户端（如某品牌 OSG 浏览器）的寻址规则仅需编写一次 Profile。后续同标准的图层仅需在元数据中声明 Profile ID 即可实现兼容。
-
-### 3.2 坐标元数据解析 (Metadata Ingestion)
-对于导入的静态底图数据，AE-EXT 支持：
-*   **自动提取**：自动读取 `metadata.xml` 等标准元数据文件，提取坐标偏移与投影系统。
-*   **精度对齐**：系统自动完成 Aether 全局坐标系与局部工程坐标系的映射。在标准配置下，可达到厘米级空间位置一致性。
-
----
-
-## 4. 性能指标 (Performance Metrics)
-AE-EXT 与 Aether 核心共享内存空间，协议封装过程低延迟且非阻塞：
-*   **单次寻址延迟**：平均增加耗时约 **0.8ms ~ 2.4ms**。
-*   **系统吞吐损耗**：在基准压测条件下，对核心引擎计算吞吐的附加开销可控制在 **< 0.1%**。
-*   **并发承载**：单节点 AE-EXT 可稳定承载 5000+ 客户端的高频异步请求。
-
----
-
-**[注：本文档仅包含工程事实与数据指标]**
+本页保留为兼容入口，不再承载独立内容更新。
 
 
 
@@ -2313,18 +2277,17 @@ sidebar_position: 6
 
 如 `03_core_subsystems` 所述，Aether 引擎代码首先是一套底层计算内核。面向外部团队交付时，通常需要将内核封装为可独立运行的基础服务节点，以屏蔽底层指针与内存管理细节。
 
-Aether 的服务化体系由三个核心组件簇构成：
-* **AP (Aether Pyramid)**：计算核心，负责空间隔离与实时并发计算。
-* **AS (Aether Sphinx)**：路由中枢，负责集群拓扑映射、请求寻址与分片管理。
-* **AVA (Aether Visualization)**：可视化中枢，负责将高吞吐数据转换为可视化结果。
+Aether 的服务化体系可分为“核心服务进程层 + 紧耦合扩展层”：
+* **核心服务进程层（Aether Server）**：以 ST UDP Gateway、AP（Aether Pyramid）与 AS（Aether Sphinx）为主，负责接入、计算与路由。
+* **紧耦合扩展层（默认同部署）**：以 AVA（Aether Visualization）为代表，负责将高吞吐数据转换为可视化结果。当前保持为扩展层，后续可按版本演进并入核心进程集合。
 
 ---
 
-## 1. AP 与 AS 算网矩阵 (Aether Core Server)
+## 1. Aether Server 核心算网矩阵
 
 基于 `libae.so` 与 State Threads 搭建的无锁、零拷贝架构，承载着低空大动态 UTM (无人机交通管理系统) 等时空骨干的核心计算流转。
 
-* **[1.1 Aether Server 服务架构核心总结](./01_aether_server.md)**
+* **[1.1 Aether Server 服务架构核心总结](./01_aether_server/index.md)**
 
 ## 2. 周边配套生态与工具链 (Toolchains & Ecology)
 
