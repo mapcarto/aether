@@ -122,6 +122,11 @@
       color: var(--muted);
     }
 
+    .zoom-wrap svg {
+      max-width: none !important;
+      display: block;
+    }
+
     @media (max-width: 860px) {
       .top {
         padding: 14px 14px 6px;
@@ -166,7 +171,7 @@
 <body>
   <div class="top">
     <div class="title">
-      <h1>Aether 核心与服务封装架构图</h1>
+      <h1><img src="../../docs/88_visual_identity/assets/logo1.svg" alt="Aether" style="height:22px;vertical-align:middle;margin-right:8px;">Aether 核心与服务封装架构图</h1>
       <div class="sub">主干分层 + 独立扩展生态（不属于 AE Server 本体）</div>
     </div>
     <button class="btn" id="zoomOut">缩小 -</button>
@@ -322,11 +327,22 @@ flowchart TB
     const fitBtn = document.getElementById("fit");
 
     let scale = 1;
-    const minScale = 0.5;
-    const maxScale = 2.2;
+    let baseWidth = null;
+    const minScale = 0.3;
+    const maxScale = 3;
+
+    function getSvg() {
+      return wrap.querySelector("svg");
+    }
 
     function applyScale() {
-      wrap.style.transform = `scale(${scale})`;
+      const svg = getSvg();
+      if (!svg) return;
+      if (!baseWidth) {
+        baseWidth = svg.getBoundingClientRect().width || parseFloat(svg.getAttribute("width")) || 800;
+      }
+      svg.style.width = (baseWidth * scale) + "px";
+      svg.style.height = "auto";
     }
 
     function zoom(step) {
@@ -341,15 +357,13 @@ flowchart TB
     }
 
     function fitWidth() {
-      const svg = wrap.querySelector("svg");
+      const svg = getSvg();
       if (!svg) return;
-
-      const targetWidth = svg.getBoundingClientRect().width || svg.viewBox.baseVal.width;
-      if (!targetWidth) return;
-
+      if (!baseWidth) {
+        baseWidth = svg.getBoundingClientRect().width || parseFloat(svg.getAttribute("width")) || 800;
+      }
       const available = canvas.clientWidth - 48;
-      const nextScale = Math.max(minScale, Math.min(maxScale, available / targetWidth));
-      scale = +nextScale.toFixed(2);
+      scale = Math.max(minScale, Math.min(maxScale, +(available / baseWidth).toFixed(2)));
       applyScale();
       canvas.scrollTo({ left: 0, top: 0, behavior: "smooth" });
     }
