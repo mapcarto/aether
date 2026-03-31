@@ -14,7 +14,7 @@ sidebar_position: 88
 
 ## 目录索引 (Directory)
 
-- [品牌与识别规范](./01_brand_identity.md)：包含引擎核心 Logo 的构造法、色值与禁止事项等。
+- [品牌与识别规范](./01_brand_identity.md)：包含 V2 三风格 Logo（Solid Grid / Dot Matrix / Wireframe）、比例与应用建议。
 
 ---
 
