@@ -1,7 +1,7 @@
 ---
 title: Aether 引擎：设计原则与架构导读
 description: 阐述 Aether (æ) 引擎在时空计算、事件驱动与多维格网方面的设计原则
-sidebar_position: 1
+sidebar_position: 0
 ---
 
 # Aether 引擎：设计原则与架构导读 (Design Principles)

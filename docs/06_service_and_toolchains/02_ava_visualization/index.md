@@ -1,7 +1,7 @@
 ---
 title: AVA 视效引擎与渲染客户端
 description: Aether 的视觉引擎与渲染客户端架构，面向动态实体场景。
-sidebar_position: 1
+sidebar_position: 0
 ---
 
 # AVA：Aether 世界的视觉引擎 (Aether Visualization Architecture)

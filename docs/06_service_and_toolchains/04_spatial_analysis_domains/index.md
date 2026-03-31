@@ -1,7 +1,7 @@
 ---
 title: 空间分析计算域
 description: 离散格网架构、Martinez-Rueda 裁剪算子与时空知识图谱推理框架。
-sidebar_position: 3
+sidebar_position: 0
 ---
 
 # 空间分析计算域 (Spatial Analysis Domains)

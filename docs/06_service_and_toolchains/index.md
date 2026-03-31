@@ -8,18 +8,17 @@ sidebar_position: 6
 
 如 `03_core_subsystems` 所述，Aether 引擎代码首先是一套底层计算内核。面向外部团队交付时，通常需要将内核封装为可独立运行的基础服务节点，以屏蔽底层指针与内存管理细节。
 
-Aether 的服务化体系由三个核心组件簇构成：
-* **AP (Aether Pyramid)**：计算核心，负责空间隔离与实时并发计算。
-* **AS (Aether Sphinx)**：路由中枢，负责集群拓扑映射、请求寻址与分片管理。
-* **AVA (Aether Visualization)**：可视化中枢，负责将高吞吐数据转换为可视化结果。
+Aether 的服务化体系可分为“核心服务进程层 + 紧耦合扩展层”：
+* **核心服务进程层（Aether Server）**：以 ST UDP Gateway、AP（Aether Pyramid）与 AS（Aether Sphinx）为主，负责接入、计算与路由。
+* **紧耦合扩展层（默认同部署）**：以 AVA（Aether Visualization）为代表，负责将高吞吐数据转换为可视化结果。当前保持为扩展层，后续可按版本演进并入核心进程集合。
 
 ---
 
-## 1. AP 与 AS 算网矩阵 (Aether Core Server)
+## 1. Aether Server 核心算网矩阵
 
 基于 `libae.so` 与 State Threads 搭建的无锁、零拷贝架构，承载着低空大动态 UTM (无人机交通管理系统) 等时空骨干的核心计算流转。
 
-* **[1.1 Aether Server 服务架构核心总结](./01_aether_server.md)**
+* **[1.1 Aether Server 服务架构核心总结](./01_aether_server/index.md)**
 
 ## 2. 周边配套生态与工具链 (Toolchains & Ecology)
 

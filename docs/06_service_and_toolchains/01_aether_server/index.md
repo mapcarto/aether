@@ -1,7 +1,7 @@
 ---
 title: Aether Server 集群与配置
 description: AP 分片、AS 路由中枢与 ST UDP 网关的分布式架构及场景化配置说明。
-sidebar_position: 1
+sidebar_position: 0
 ---
 
 # Aether Server 集群与部署配置 (Aether Server Cluster)
