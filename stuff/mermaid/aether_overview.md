@@ -28,6 +28,7 @@ flowchart TB
     end
 
     subgraph SERVER[2. AE Server 服务层]
+        direction TB
         S0[AE Server]
         S1[ST UDP Gateway]
         S2[AS Aether Sphinx]
@@ -35,9 +36,9 @@ flowchart TB
         S4[API and Protocol]
 
         S0 --> S1
-        S0 --> S2
-        S0 --> S3
-        S0 --> S4
+        S1 ~~~ S2
+        S2 ~~~ S3
+        S3 ~~~ S4
     end
 
     subgraph EXT[3. 独立扩展工具集]
