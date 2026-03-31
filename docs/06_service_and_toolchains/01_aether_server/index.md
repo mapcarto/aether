@@ -1,12 +1,12 @@
 ---
 title: Aether Server 集群与配置
-description: AP 分片、AS 神谕、ST UDP 网关的分布式架构矩阵与特殊极限高动态场景配置
+description: AP 分片、AS 路由中枢与 ST UDP 网关的分布式架构及场景化配置说明。
 sidebar_position: 1
 ---
 
 # Aether Server 集群与部署配置 (Aether Server Cluster)
 
-纯粹的 Aether 内核（`libae.so`）必须被挂载在分布式的骨干网络上，才能面对宏大的城市级甚至省级空域物理防撞与推演。
+Aether 内核（`libae.so`）通常需要挂载到分布式服务网络，才能承载城市级或省级空域的碰撞检测与推演任务。
 
 ## 核心架构组件
 
@@ -37,4 +37,4 @@ flowchart TD
     AP1 <-.->|"极速切片热更接管"| AP1_NEW["AP 分片 1 (新版本)"]
 ```
 
-本章节详细定义了 Aether Server 应对海量信标流的算力切分、分布式拓扑架构（AP/AS/UDP网关），并提供了针对特殊情况（如遇到不可抗极高频密集流体场、雷达扫描等极端数据）时，**Aether Server 如何通过配置文件激活基于内核内存的高级处理策略（如双金字塔备灾模式）**。
+本章节定义 Aether Server 在海量信标流场景下的算力切分方式与分布式拓扑（AP/AS/UDP 网关），并给出高频密集数据场景下的配置建议（如双金字塔备援模式）。
