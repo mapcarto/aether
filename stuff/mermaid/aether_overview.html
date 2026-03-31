@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aether 核心与服务封装架构图</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --ink: #10213a;
+      --muted: #5f6e86;
+      --line: #d6dfec;
+      --accent: #155eef;
+      --accent-2: #0e9384;
+      --shadow: 0 10px 30px rgba(16, 33, 58, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 5% 8%, #d9e8ff 0%, transparent 32%),
+        radial-gradient(circle at 95% 92%, #d8fff8 0%, transparent 34%),
+        var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .top {
+      padding: 18px 20px 8px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title {
+      margin-right: auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.2px;
+    }
+
+    .sub {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .btn.primary {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+    }
+
+    .stage {
+      margin: 12px 20px 20px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      flex: 1;
+      min-height: 420px;
+      position: relative;
+    }
+
+    .canvas {
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      padding: 24px;
+      cursor: grab;
+    }
+
+    .canvas:active {
+      cursor: grabbing;
+    }
+
+    .zoom-wrap {
+      transform-origin: top left;
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 10px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 860px) {
+      .top {
+        padding: 14px 14px 6px;
+      }
+
+      .stage {
+        margin: 10px 14px 14px;
+      }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      .btn {
+        padding: 8px 10px;
+      }
+    }
+  </style>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      theme: "base",
+      themeVariables: {
+        primaryColor: "#eaf1ff",
+        primaryTextColor: "#10213a",
+        primaryBorderColor: "#155eef",
+        lineColor: "#48658f",
+        secondaryColor: "#e8fbf8",
+        tertiaryColor: "#f3f6fb",
+        fontFamily: "PingFang SC, Noto Sans SC, Microsoft YaHei, sans-serif"
+      },
+      flowchart: {
+        htmlLabels: true,
+        curve: "basis"
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="top">
+    <div class="title">
+      <h1>Aether 核心与服务封装架构图</h1>
+      <div class="sub">主干分层 + 独立扩展生态（不属于 AE Server 本体）</div>
+    </div>
+    <button class="btn" id="zoomOut">缩小 -</button>
+    <button class="btn" id="zoomIn">放大 +</button>
+    <button class="btn" id="reset">重置</button>
+    <button class="btn primary" id="fit">适配宽度</button>
+  </div>
+
+  <div class="stage">
+    <div class="canvas" id="canvas">
+      <div class="zoom-wrap" id="zoomWrap">
+        <pre class="mermaid">
+flowchart TB
+  style KERNEL fill:#fff4db,stroke:#d97706,stroke-width:2px,color:#7c2d12
+  style SERVER fill:#e8f3ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+  style VEXT fill:#eef7ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+  style SEXT fill:#eef7ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+  style CEXT fill:#eef7ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+  style OPS fill:#f8fafc,stroke:#64748b,stroke-width:2px,color:#1e293b
+
+    subgraph KERNEL[1. Aether Kernel 计算内核]
+      direction TB
+      K0[libae.so]
+      K1[Spatial Grid]
+      K2[Archetypeless ECS]
+      K3[Pyraman Event Timing]
+      K4[Ringbuf Eventfd MemArena]
+
+      K0 --> K1
+      K0 --> K2
+      K0 --> K3
+      K0 --> K4
+
+      K1 ~~~ K2
+      K2 ~~~ K3
+      K3 ~~~ K4
+    end
+
+    subgraph SERVER[2. AE Server 服务层]
+      S0[AE Server]
+      S1[ST UDP Gateway]
+      S2[AS Aether Sphinx]
+      S3[AP Aether Pyramid]
+      S4[API and Protocol]
+
+      S0 --> S1
+      S0 --> S2
+      S0 --> S3
+      S0 --> S4
+    end
+
+    subgraph EXT[3. 独立扩展工具集]
+      direction LR
+
+      subgraph VEXT[AVA 可视化扩展]
+        direction TB
+        V0[AVA 调度与渲染中枢]
+        V1[Cairo 2D]
+        V2[Vulkan 3D]
+        V3[Gaussian Splatting]
+        V4[Visual Debug Tools]
+
+        V0 --> V1
+        V0 --> V2
+        V0 --> V3
+        V0 --> V4
+        V1 ~~~ V2
+        V2 ~~~ V3
+        V3 ~~~ V4
+      end
+
+      subgraph SEXT[空间分析扩展]
+        direction TB
+        A0[空间分析调度与计算中枢]
+        A1[离散格网计算域]
+        A2[经典空间计算域]
+        A3[时空知识图谱域]
+
+        A0 --> A1
+        A0 --> A2
+        A0 --> A3
+        A1 ~~~ A2
+        A2 ~~~ A3
+      end
+
+      subgraph CEXT[AE-EXT 客户端扩展]
+        direction TB
+        C0[AE-EXT 协议转换中枢]
+        C1[Cesium]
+        C2[ArcGIS]
+        C3[QGIS]
+        C4[OSGB]
+
+        C0 --> C1
+        C0 --> C2
+        C0 --> C3
+        C0 --> C4
+        C1 ~~~ C2
+        C2 ~~~ C3
+        C3 ~~~ C4
+      end
+    end
+
+    subgraph AI[4. AI 扩展]
+      direction TB
+      MCP[MCP Server]
+      LLM[外部模型 LLM]
+      SK[Skills 工具编排层]
+
+      LLM <--> SK
+      LLM <--> MCP
+    end
+
+    subgraph OPS[5. 运维工具]
+      direction TB
+      OP1[数据导入]
+      OP2[监控告警与日志]
+
+      OP1 ~~~ OP2
+    end
+
+    KERNEL ~~~ SERVER
+    SERVER ~~~ OPS
+    EXT ~~~ AI
+
+    S3 --> K0
+    S2 --> S3
+    S1 --> S2
+    S3 --> V0
+    S4 --> V0
+    S3 --> A0
+    S4 --> A0
+    S3 --> C0
+    S4 --> C0
+    MCP --> S4
+    SK -.调用工具.-> EXT
+    S4 --> OP1
+    OP1 --> S3
+    S3 --> OP2
+        </pre>
+      </div>
+    </div>
+    <div class="legend">提示：扩展在框外独立呈现，按住鼠标拖动画布查看</div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const wrap = document.getElementById("zoomWrap");
+    const zoomInBtn = document.getElementById("zoomIn");
+    const zoomOutBtn = document.getElementById("zoomOut");
+    const resetBtn = document.getElementById("reset");
+    const fitBtn = document.getElementById("fit");
+
+    let scale = 1;
+    const minScale = 0.5;
+    const maxScale = 2.2;
+
+    function applyScale() {
+      wrap.style.transform = `scale(${scale})`;
+    }
+
+    function zoom(step) {
+      scale = Math.max(minScale, Math.min(maxScale, +(scale + step).toFixed(2)));
+      applyScale();
+    }
+
+    function reset() {
+      scale = 1;
+      applyScale();
+      canvas.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+    }
+
+    function fitWidth() {
+      const svg = wrap.querySelector("svg");
+      if (!svg) return;
+
+      const targetWidth = svg.getBoundingClientRect().width || svg.viewBox.baseVal.width;
+      if (!targetWidth) return;
+
+      const available = canvas.clientWidth - 48;
+      const nextScale = Math.max(minScale, Math.min(maxScale, available / targetWidth));
+      scale = +nextScale.toFixed(2);
+      applyScale();
+      canvas.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+    }
+
+    zoomInBtn.addEventListener("click", () => zoom(0.1));
+    zoomOutBtn.addEventListener("click", () => zoom(-0.1));
+    resetBtn.addEventListener("click", reset);
+    fitBtn.addEventListener("click", fitWidth);
+
+    let isDown = false;
+    let startX = 0;
+    let startY = 0;
+    let left = 0;
+    let top = 0;
+
+    canvas.addEventListener("mousedown", (e) => {
+      isDown = true;
+      startX = e.pageX;
+      startY = e.pageY;
+      left = canvas.scrollLeft;
+      top = canvas.scrollTop;
+    });
+
+    window.addEventListener("mouseup", () => {
+      isDown = false;
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (!isDown) return;
+      const dx = e.pageX - startX;
+      const dy = e.pageY - startY;
+      canvas.scrollLeft = left - dx;
+      canvas.scrollTop = top - dy;
+    });
+
+    window.addEventListener("load", () => {
+      setTimeout(fitWidth, 260);
+    });
+  </script>
+</body>
+</html>

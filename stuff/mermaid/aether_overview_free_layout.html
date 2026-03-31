@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aether 架构图</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --ink: #132238;
+      --muted: #5d6e86;
+      --line: #cfd8e6;
+      --kernel-bg: #fff4db;
+      --kernel-stroke: #d97706;
+      --server-bg: #e8f3ff;
+      --server-stroke: #2563eb;
+      --ext-bg: #eef7ff;
+      --ext-stroke: #2563eb;
+      --ai-bg: #eefaf5;
+      --ai-stroke: #0f766e;
+      --ops-bg: #f8fafc;
+      --ops-stroke: #64748b;
+      --shadow: 0 10px 28px rgba(19, 34, 56, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 6% 10%, #dfeaff 0%, transparent 30%),
+        radial-gradient(circle at 94% 90%, #e3fff8 0%, transparent 34%),
+        var(--bg);
+      color: var(--ink);
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 14px 16px 8px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      margin-right: auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .sub {
+      margin-top: 2px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 7px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .viewport {
+      margin: 8px 16px 16px;
+      height: calc(100vh - 92px);
+      min-height: 620px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      overflow: auto;
+      position: relative;
+      cursor: grab;
+    }
+
+    .viewport:active {
+      cursor: grabbing;
+    }
+
+    .zoom-wrap {
+      transform-origin: top left;
+      width: max-content;
+      min-width: 100%;
+    }
+
+    .diagram {
+      position: relative;
+      width: 1100px;
+      height: 760px;
+      padding: 24px;
+    }
+
+    .links {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .group {
+      position: absolute;
+      border-radius: 14px;
+      border: 2px solid;
+      background: #fff;
+      padding: 12px;
+      z-index: 2;
+    }
+
+    .group h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    .kernel { left: 32px; top: 28px; width: 320px; border-color: var(--kernel-stroke); background: var(--kernel-bg); }
+    .server { left: 410px; top: 28px; width: 350px; border-color: var(--server-stroke); background: var(--server-bg); }
+    .ops { left: 800px; top: 28px; width: 260px; border-color: var(--ops-stroke); background: var(--ops-bg); }
+    .ext { left: 32px; top: 390px; width: 1020px; border-color: var(--ext-stroke); background: #fafdff; }
+    .ai { left: 800px; top: 170px; width: 260px; border-color: var(--ai-stroke); background: var(--ai-bg); }
+
+    .node-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .node {
+      border: 1px solid #b9c9df;
+      background: #fff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 13px;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .node.main {
+      border-width: 2px;
+      font-weight: 600;
+    }
+
+    .hint-arrow {
+      text-align: center;
+      color: #7d8faa;
+      font-size: 12px;
+      line-height: 1;
+      margin: -2px 0;
+    }
+
+    .ext-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .ext-box {
+      border: 2px solid var(--ext-stroke);
+      background: var(--ext-bg);
+      border-radius: 12px;
+      padding: 8px;
+    }
+
+    .ext-box h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .legend {
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 6px 8px;
+      z-index: 3;
+    }
+
+    @media (max-width: 900px) {
+      .viewport { height: calc(100vh - 120px); }
+    }
+
+    @media print {
+      @page { size: A4 landscape; margin: 10mm; }
+      html, body {
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+      }
+      body { background: #fff; }
+      /* 隐藏按钮，只保留标题区 */
+      .btn { display: none !important; }
+      .topbar {
+        padding: 0 0 6px 0;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 6px;
+        flex-wrap: nowrap;
+      }
+      .viewport {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        position: static !important;
+        display: block !important;
+      }
+      .zoom-wrap {
+        transform: none !important;
+        width: auto !important;
+        min-width: 0 !important;
+        display: block !important;
+      }
+      .diagram {
+        position: relative !important;
+        width: 1100px;
+        height: 760px;
+        zoom: 0.87;
+        transform: none !important;
+      }
+      .links {
+        position: absolute;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="title">
+      <h1><img src="../../docs/88_visual_identity/assets/logo.svg" alt="Aether" style="height:32px;vertical-align:middle;margin-right:10px;">Aether 架构图</h1>
+      <div class="sub">实线 = 执行/数据链路&emsp;虚线 = 逻辑调用</div>
+    </div>
+    <button class="btn" id="zoomOut">缩小 -</button>
+    <button class="btn" id="zoomIn">放大 +</button>
+    <button class="btn" id="reset">重置</button>
+    <button class="btn" id="printBtn" style="background:#1d4ed8;color:#fff;border-color:#1d4ed8;">打印 / PDF</button>
+  </div>
+
+  <div class="viewport" id="viewport">
+    <div class="zoom-wrap" id="zoomWrap">
+      <div class="diagram" id="diagram">
+        <svg class="links" id="links" viewBox="0 0 1100 760" preserveAspectRatio="none">
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L10,4 L0,8 z" fill="#5a6f91"></path>
+            </marker>
+            <marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L10,4 L0,8 z" fill="#6b7f9f"></path>
+            </marker>
+          </defs>
+        </svg>
+
+        <section class="group kernel">
+          <h2>1. Aether Kernel 计算内核</h2>
+          <div class="node-col">
+            <div class="node main" data-id="K0">libae.so</div>
+            <div class="hint-arrow">↓</div>
+            <div class="node" data-id="K1">Spatial Grid</div>
+            <div class="node" data-id="K2">Archetypeless ECS</div>
+            <div class="node" data-id="K3">Pyraman Event Timing</div>
+            <div class="node" data-id="K4">Ringbuf / Eventfd / MemArena</div>
+          </div>
+        </section>
+
+        <section class="group server">
+          <h2>2. AE Server 服务层</h2>
+          <div class="node-col">
+            <div class="node main" data-id="S0">AE Server</div>
+            <div class="node" data-id="S1">ST UDP Gateway</div>
+            <div class="node" data-id="S2">AS Aether Sphinx</div>
+            <div class="node" data-id="S3">AP Aether Pyramid</div>
+            <div class="node" data-id="S4">API and Protocol</div>
+          </div>
+        </section>
+
+        <section class="group ops">
+          <h2>5. 运维工具</h2>
+          <div class="node-col">
+            <div class="node" data-id="OP1">数据导入</div>
+            <div class="node" data-id="OP2">监控告警与日志</div>
+          </div>
+        </section>
+
+        <section class="group ext" data-id="EXT">
+          <h2>3. 独立扩展工具集</h2>
+          <div class="ext-grid">
+            <div class="ext-box">
+              <h3>AVA 可视化扩展</h3>
+              <div class="node-col">
+                <div class="node main" data-id="V0">AVA 调度与渲染中枢</div>
+                <div class="node" data-id="V1">Cairo 2D</div>
+                <div class="node" data-id="V2">Vulkan 3D</div>
+                <div class="node" data-id="V3">Gaussian Splatting</div>
+                <div class="node" data-id="V4">Visual Debug Tools</div>
+              </div>
+            </div>
+            <div class="ext-box">
+              <h3>空间分析扩展</h3>
+              <div class="node-col">
+                <div class="node main" data-id="A0">空间分析调度与计算中枢</div>
+                <div class="node" data-id="A1">离散格网计算域</div>
+                <div class="node" data-id="A2">经典空间计算域</div>
+                <div class="node" data-id="A3">时空知识图谱域</div>
+              </div>
+            </div>
+            <div class="ext-box">
+              <h3>AE-EXT 客户端扩展</h3>
+              <div class="node-col">
+                <div class="node main" data-id="C0">AE-EXT 协议转换中枢</div>
+                <div class="node" data-id="C1">Cesium</div>
+                <div class="node" data-id="C2">ArcGIS</div>
+                <div class="node" data-id="C3">QGIS</div>
+                <div class="node" data-id="C4">OSGB</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="group ai">
+          <h2>4. AI 扩展</h2>
+          <div class="node-col">
+            <div class="node main" data-id="MCP">MCP</div>
+            <div class="node" data-id="LLM">外部模型 LLM</div>
+            <div class="node" data-id="SK">Skills</div>
+          </div>
+        </section>
+
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const linksSvg = document.getElementById("links");
+    const diagram = document.getElementById("diagram");
+
+    const relations = [
+      // Server → Kernel
+      ["S3", "K0", "solid"],
+      // Server → 独立扩展工具集（一条线）
+      ["S4", "EXT", "solid"],
+      // AI → Server
+      ["MCP", "S4",  "solid"],
+      ["SK",  "EXT", "dashed", "bottom", "top"],
+      // 运维工具（一根线从 Server 主节点连入）
+      ["S0", "OP1", "solid"]
+    ];
+
+    // 使用 offsetLeft/offsetTop 获取相对 diagram 的原始布局坐标
+    // 完全不受 CSS scale transform 影响
+    function getOffset(el) {
+      let x = 0, y = 0;
+      let cur = el;
+      while (cur && cur !== diagram) {
+        x += cur.offsetLeft;
+        y += cur.offsetTop;
+        cur = cur.offsetParent;
+      }
+      return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+    }
+
+    function getAnchor(el, side) {
+      const { x, y, w, h } = getOffset(el);
+      if (side === "right")  return { x: x + w,     y: y + h / 2 };
+      if (side === "left")   return { x: x,          y: y + h / 2 };
+      if (side === "top")    return { x: x + w / 2,  y: y         };
+      /* bottom */           return { x: x + w / 2,  y: y + h     };
+    }
+
+    function smartSide(aOff, bOff) {
+      const dx = (bOff.x + bOff.w / 2) - (aOff.x + aOff.w / 2);
+      const dy = (bOff.y + bOff.h / 2) - (aOff.y + aOff.h / 2);
+      if (Math.abs(dx) >= Math.abs(dy)) return dx > 0 ? ["right", "left"] : ["left", "right"];
+      return dy > 0 ? ["bottom", "top"] : ["top", "bottom"];
+    }
+
+    // 绘制横平竖直折线（orthogonal path）
+    function orthoD(p1, p2, side1) {
+      const r = n => Math.round(n);
+      if (side1 === "right" || side1 === "left") {
+        const dy = Math.abs(p2.y - p1.y);
+        const dx = Math.abs(p2.x - p1.x);
+        // 横向为主时，强制走直线（消除 Z 形抖动）
+        if (dx === 0 || dy / dx < 0.4) {
+          const midY = r((p1.y + p2.y) / 2);
+          return `M ${r(p1.x)},${midY} H ${r(p2.x)}`;
+        }
+        const mx = r((p1.x + p2.x) / 2);
+        return `M ${r(p1.x)},${r(p1.y)} H ${mx} V ${r(p2.y)} H ${r(p2.x)}`;
+      } else {
+        const dx = Math.abs(p2.x - p1.x);
+        const dy = Math.abs(p2.y - p1.y);
+        // 纵向为主时，强制走直线
+        if (dy === 0 || dx / dy < 0.4) {
+          const midX = r((p1.x + p2.x) / 2);
+          return `M ${midX},${r(p1.y)} V ${r(p2.y)}`;
+        }
+        const my = r((p1.y + p2.y) / 2);
+        return `M ${r(p1.x)},${r(p1.y)} V ${my} H ${r(p2.x)} V ${r(p2.y)}`;
+      }
+    }
+
+    function addPath(aEl, bEl, type, forceSa, forceSb) {
+      const aOff = getOffset(aEl);
+      const bOff = getOffset(bEl);
+      const [sa, sb] = forceSa ? [forceSa, forceSb] : smartSide(aOff, bOff);
+      const p1 = getAnchor(aEl, sa);
+      const p2 = getAnchor(bEl, sb);
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", orthoD(p1, p2, sa));
+      path.setAttribute("stroke", "#5a6f91");
+      path.setAttribute("stroke-width", type === "dashed" ? "1.8" : "2");
+      path.setAttribute("fill", "none");
+      if (type === "dashed") path.setAttribute("stroke-dasharray", "6 6");
+      path.setAttribute("marker-end", "url(#arrow)");
+      linksSvg.appendChild(path);
+    }
+
+    function addDouble(aEl, bEl) {
+      const aOff = getOffset(aEl);
+      const bOff = getOffset(bEl);
+      const [sa, sb] = smartSide(aOff, bOff);
+      const p1 = getAnchor(aEl, sa);
+      const p2 = getAnchor(bEl, sb);
+      const off = 5;
+
+      let d1, d2;
+      if (sa === "right" || sa === "left") {
+        const mx = Math.round((p1.x + p2.x) / 2);
+        d1 = `M ${p1.x},${p1.y - off} H ${mx} V ${p2.y - off} H ${p2.x}`;
+        d2 = `M ${p2.x},${p2.y + off} H ${mx} V ${p1.y + off} H ${p1.x}`;
+      } else {
+        const my = Math.round((p1.y + p2.y) / 2);
+        d1 = `M ${p1.x - off},${p1.y} V ${my} H ${p2.x - off} V ${p2.y}`;
+        d2 = `M ${p2.x + off},${p2.y} V ${my} H ${p1.x + off} V ${p1.y}`;
+      }
+
+      for (const [d, me] of [[d1, "url(#arrow2)"], [d2, "url(#arrow2)"]]) {
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", d);
+        path.setAttribute("stroke", "#6b7f9f");
+        path.setAttribute("stroke-width", "1.8");
+        path.setAttribute("fill", "none");
+        path.setAttribute("marker-end", me);
+        linksSvg.appendChild(path);
+      }
+    }
+
+    function renderLinks() {
+      const defs = linksSvg.querySelector("defs").cloneNode(true);
+      linksSvg.innerHTML = "";
+      linksSvg.appendChild(defs);
+
+      for (const [from, to, type, sa, sb] of relations) {
+        const aEl = document.querySelector(`[data-id="${from}"]`);
+        const bEl = document.querySelector(`[data-id="${to}"]`);
+        if (!aEl || !bEl) continue;
+        if (type === "double") { addDouble(aEl, bEl); continue; }
+        addPath(aEl, bEl, type, sa, sb);
+      }
+    }
+
+    const viewport = document.getElementById("viewport");
+    const zoomWrap = document.getElementById("zoomWrap");
+    const zoomInBtn = document.getElementById("zoomIn");
+    const zoomOutBtn = document.getElementById("zoomOut");
+    const resetBtn = document.getElementById("reset");
+
+    let scale = 1;
+    const minScale = 0.6;
+    const maxScale = 1.8;
+
+    // 只需缩放视觉，不需要重算连线坐标（offsetTop 不受 scale 影响）
+    function applyScale() {
+      zoomWrap.style.transform = `scale(${scale})`;
+    }
+
+    zoomInBtn.addEventListener("click", () => {
+      scale = Math.min(maxScale, +(scale + 0.1).toFixed(2));
+      applyScale();
+    });
+
+    zoomOutBtn.addEventListener("click", () => {
+      scale = Math.max(minScale, +(scale - 0.1).toFixed(2));
+      applyScale();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      const diagramW = 1100;
+      const diagramH = 760;
+      const vw = viewport.clientWidth  - 32;
+      const vh = viewport.clientHeight - 32;
+      const fitScale = Math.min(vw / diagramW, vh / diagramH, 1);
+      scale = Math.max(minScale, +fitScale.toFixed(2));
+      zoomWrap.style.transform = `scale(${scale})`;
+      const scaledW = diagramW * scale;
+      const scaledH = diagramH * scale;
+      const scrollX = Math.max(0, (scaledW - viewport.clientWidth)  / 2);
+      const scrollY = Math.max(0, (scaledH - viewport.clientHeight) / 2);
+      viewport.scrollTo({ left: scrollX, top: scrollY, behavior: "smooth" });
+    });
+
+    let isDown = false;
+    let sx = 0;
+    let sy = 0;
+    let sl = 0;
+    let st = 0;
+
+    viewport.addEventListener("mousedown", (e) => {
+      isDown = true;
+      sx = e.pageX;
+      sy = e.pageY;
+      sl = viewport.scrollLeft;
+      st = viewport.scrollTop;
+    });
+
+    window.addEventListener("mouseup", () => {
+      isDown = false;
+    });
+
+    viewport.addEventListener("mousemove", (e) => {
+      if (!isDown) return;
+      viewport.scrollLeft = sl - (e.pageX - sx);
+      viewport.scrollTop = st - (e.pageY - sy);
+    });
+
+    document.getElementById("printBtn").addEventListener("click", () => {
+      const prevTransform = zoomWrap.style.transform;
+      zoomWrap.style.transform = "none";
+      renderLinks();
+      window.print();
+      zoomWrap.style.transform = prevTransform;
+      renderLinks();
+    });
+
+    // 打印前：把 html/body 高度锁到内容实际高度，防止空白第二页
+    window.addEventListener("beforeprint", () => {
+      const topbarH = document.querySelector(".topbar").offsetHeight;
+      const diagramH = Math.round(760 * 0.87);
+      const totalH = topbarH + diagramH + 20; // 20px 余量
+      document.documentElement.style.height = totalH + "px";
+      document.body.style.height = totalH + "px";
+      document.body.style.overflow = "hidden";
+      // 临时移除 zoom-wrap 缩放
+      zoomWrap.dataset.prevTransform = zoomWrap.style.transform;
+      zoomWrap.style.transform = "none";
+      renderLinks();
+    });
+
+    window.addEventListener("afterprint", () => {
+      document.documentElement.style.height = "";
+      document.body.style.height = "";
+      document.body.style.overflow = "";
+      zoomWrap.style.transform = zoomWrap.dataset.prevTransform || "";
+      renderLinks();
+    });
+
+    window.addEventListener("resize", () => renderLinks());
+    window.addEventListener("load", () => {
+      // 自动计算合适的缩放比例，让图完整居中显示
+      const diagramW = 1100;
+      const diagramH = 760;
+      const vw = viewport.clientWidth  - 32;
+      const vh = viewport.clientHeight - 32;
+      const fitScale = Math.min(vw / diagramW, vh / diagramH, 1);
+      scale = Math.max(minScale, +fitScale.toFixed(2));
+      zoomWrap.style.transform = `scale(${scale})`;
+      // 计算居中偏移（scale 后实际尺寸 vs 视口）
+      const scaledW = diagramW * scale;
+      const scaledH = diagramH * scale;
+      const scrollX = Math.max(0, (scaledW - viewport.clientWidth)  / 2);
+      const scrollY = Math.max(0, (scaledH - viewport.clientHeight) / 2);
+      viewport.scrollTo({ left: scrollX, top: scrollY });
+      renderLinks();
+    });
+  </script>
+</body>
+</html>
